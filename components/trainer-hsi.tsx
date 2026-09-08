@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { fmt, norm, type Aircraft, type Reception } from '@/lib/navigation';
 
 export type BearingSource = 'NAV1' | 'NAV2' | 'ADF' | 'OFF';
@@ -99,6 +100,7 @@ export function TrainerHSI({
 }) {
   const green = '#66ff66',
     valid = !!nav?.valid;
+  const gradientId = useId();
   return (
     <div className="hsi-assembly">
       <div className="hsi-viewport">
@@ -110,12 +112,12 @@ export function TrainerHSI({
           aria-label={`HSI. Baş ${fmt(ac.heading)}, course ${fmt(course)}. VOR${navIndex}. ${valid ? `${nav.flag}${hideGuidance ? '' : `, CDI ${nav.error.toFixed(1)} derece`}` : 'Seyrüsefer sinyali geçersiz'}`}
         >
           <defs>
-            <radialGradient id="instrument-bg">
+            <radialGradient id={gradientId}>
               <stop stopColor="#263338" />
               <stop offset="1" stopColor="#10171b" />
             </radialGradient>
           </defs>
-          <rect width="640" height="542" rx="6" fill="url(#instrument-bg)" />
+          <rect width="640" height="542" rx="6" fill={`url(#${gradientId})`} />
           <text x="20" y="30" fill="#aab7c0" fontSize="14">
             HDG
           </text>

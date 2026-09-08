@@ -2091,3 +2091,316 @@ div:has(> .trainer-choice-menu) {
     height: 52px;
   }
 }
+
+/* Recorded flight review: one read-only time cursor drives both instruments. */
+.flight-review {
+  margin: 28px 0;
+}
+.review-summary {
+  padding: 24px;
+  background: #172f3c;
+  border: 1px solid #35576c;
+  border-radius: 12px;
+}
+.review-summary h3,
+.replay-workspace h3 {
+  font-size: 19px;
+  line-height: 1.45;
+  margin: 10px 0;
+  color: #e5f4ff;
+}
+.review-summary ul {
+  padding-left: 21px;
+  margin: 16px 0;
+  color: #bcd3e3;
+  font-size: 15px;
+}
+.review-summary li {
+  margin: 10px 0;
+}
+.review-next {
+  border-top: 1px solid #36546a;
+  padding-top: 16px;
+}
+.review-next b {
+  font-size: 14px;
+  color: #92e1ef;
+}
+.review-next p {
+  margin: 7px 0 0;
+  font-size: 16px;
+}
+.review-empty {
+  display: block;
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px dashed #3e566c;
+  border-radius: 10px;
+  color: #b2cadc;
+  font-size: 15px;
+}
+.replay-workspace {
+  margin-top: 26px;
+  border-top: 1px solid #365067;
+  padding-top: 22px;
+}
+.replay-workspace > .section-heading {
+  margin-bottom: 18px;
+}
+.replay-transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.replay-transport [data-slot='button'] {
+  font-size: 14px;
+  padding-inline: 12px;
+}
+.replay-transport [data-slot='select-trigger'] {
+  width: 78px;
+}
+.replay-clock {
+  font:
+    16px var(--font-geist-mono),
+    monospace;
+  color: #c5e3f2;
+  margin-left: auto;
+  white-space: nowrap;
+}
+.replay-seek {
+  display: grid;
+  grid-template-columns: auto minmax(80px, 1fr);
+  gap: 0 16px;
+  align-items: center;
+  margin: 17px 0;
+  font-size: 14px;
+  color: #b6d1e3;
+}
+.replay-seek > span:last-child {
+  grid-column: 1/-1;
+  justify-self: end;
+  font:
+    12px var(--font-geist-mono),
+    monospace;
+}
+.replay-instruments {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 15px;
+  margin: 22px 0;
+  align-items: stretch;
+}
+.replay-hsi {
+  min-width: 0;
+  background: #10171b;
+  border: 1px solid #43596c;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.replay-map {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.replay-map .map-frame {
+  flex: 1;
+  height: auto;
+  min-height: 300px;
+}
+.replay-map .panel-toolbar,
+.replay-hsi .panel-toolbar {
+  min-height: 61px;
+}
+.replay-readouts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 20px 0;
+}
+.replay-readouts > div {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #344a5e;
+  border-radius: 9px;
+  background: #102333;
+}
+.replay-readouts dt {
+  font-size: 12px;
+  color: #a7c3d7;
+  line-height: 1.5;
+}
+.replay-readouts dd {
+  margin: 8px 0 0;
+  font:
+    15px var(--font-geist-mono),
+    monospace;
+  color: #dcf2ff;
+  overflow-wrap: anywhere;
+}
+.replay-explanation {
+  padding: 23px;
+  margin: 22px 0;
+  border: 1px solid #446279;
+  border-left: 3px solid #73cfe3;
+  border-radius: 0 12px 12px 0;
+  background: #1b3142;
+}
+.replay-explanation p {
+  font-size: 15px;
+  line-height: 1.8;
+  margin: 12px 0;
+}
+.replay-explanation small {
+  font-size: 12px;
+  color: #b8cddd;
+}
+.replay-explanation.review-setup,
+.replay-explanation.review-signal {
+  background: #332e27;
+  border-color: #746246;
+}
+.replay-explanation.review-success {
+  background: #18372f;
+  border-color: #3c755f;
+}
+.review-timeline-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.review-timeline-heading > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.review-timeline-heading [data-slot='select-trigger'] {
+  min-width: 170px;
+}
+.replay-timeline-hint {
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 10px 0;
+}
+.review-events {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+.review-events li {
+  margin: 8px 0;
+}
+.review-events button {
+  display: flex;
+  width: 100%;
+  min-height: 64px;
+  gap: 14px;
+  padding: 15px;
+  text-align: left;
+  align-items: flex-start;
+  color: #c2d8e8;
+  border: 1px solid #334a5f;
+  background: #172737;
+  border-radius: 10px;
+}
+.review-events button:hover,
+.review-events button.active {
+  background: #254557;
+  border-color: #6abace;
+}
+.review-events time {
+  flex-shrink: 0;
+  padding-top: 3px;
+  font:
+    13px var(--font-geist-mono),
+    monospace;
+  color: #84d6e8;
+}
+.review-events button > span {
+  flex: 1;
+  min-width: 0;
+}
+.review-events button b {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.review-events button span > span {
+  display: block;
+  margin-top: 5px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #a9c4d7;
+}
+.review-events svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.review-disclaimer {
+  margin: 18px 0 5px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #9fb9ce;
+}
+#flight-result-heading {
+  scroll-margin-top: 20px;
+}
+@media (max-width: 1100px) {
+  .replay-instruments {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .replay-hsi .hsi-viewport {
+    max-width: 560px;
+  }
+  .replay-map .map-frame {
+    height: 350px;
+    flex: none;
+  }
+}
+@media (max-width: 600px) {
+  .review-summary,
+  .replay-explanation {
+    padding: 18px 15px;
+  }
+  .replay-readouts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .replay-readouts > div {
+    padding: 10px;
+  }
+  .replay-readouts dd {
+    font-size: 14px;
+  }
+  .replay-transport {
+    gap: 7px;
+  }
+  .replay-transport [data-slot='button'] {
+    padding-inline: 9px;
+    font-size: 13px;
+  }
+  .replay-clock {
+    font-size: 14px;
+  }
+  .replay-seek {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .replay-seek > span:first-child {
+    font-size: 14px;
+  }
+  .review-events button {
+    padding: 12px 10px;
+    gap: 10px;
+  }
+  .review-events button > svg {
+    display: none;
+  }
+  .review-timeline-heading [data-slot='select-trigger'] {
+    width: 100%;
+  }
+  .replay-map .map-frame {
+    height: 310px;
+  }
+}

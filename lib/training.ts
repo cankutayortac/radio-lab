@@ -12,6 +12,7 @@ import {
   type Point,
   type Wind,
 } from './navigation.ts';
+import type { ReviewSummary } from './flight-review.ts';
 
 export type Mission = {
   id: string;
@@ -312,7 +313,11 @@ export function evaluate(
   next.stable = sample.good ? previous.stable + dt : 0;
   next.best = Math.max(previous.best, next.stable);
   next.good += sample.good ? dt : 0;
-  if (sample.setup && sample.r?.valid) {
+  if (
+    sample.setup &&
+    sample.r?.valid &&
+    (m.kind !== 'fix' || receiver(ac, s.nav2, 'NAV', s.courses[1])?.valid)
+  ) {
     next.errorIntegral += sample.error * sample.error * dt;
     next.samples += dt;
     next.maxError = Math.max(next.maxError, sample.error);
@@ -353,6 +358,7 @@ export type FlightResult = {
   stable: number;
   exam: boolean;
   reason: string;
+  review?: ReviewSummary;
 };
 export function grade(
   m: Mission,

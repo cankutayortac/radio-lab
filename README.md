@@ -9,6 +9,7 @@ VOR, NDB ve DME çalışmaları için Türkçe, tarayıcı tabanlı yatay seyrü
 - Aktif/standby frekans ayarı, mors kimliği, course/heading sliderları.
 - Küresel yatay geometri, rüzgâr, koordineli dönüş ve DME eğik mesafesi.
 - Rehberli/sınav modları; uçuş geçmişi yalnız kullanılan tarayıcıda saklanır.
+- Yedi görevin tamamında açıklamalı değerlendirme, eşzamanlı HSI/harita tekrarı ve ayar değişikliği çizelgesi.
 - Tüm ekranlarda Kokpit / Harita / Görevler çalışma alanları; bilgisayarda HSI ve harita yan yana.
 - Telefon ve tablette alt gezinme, büyük dokunma alanları ve kesintiye dayanıklı sliderlar.
 
@@ -47,6 +48,14 @@ Depoda **Settings → Pages → Build and deployment → Source → GitHub Actio
 ## Telefon ve tablet
 
 Kokpit görünümünde HSI, frekanslar ve baş/course kontrolleri; Harita görünümünde uçuş izi; Görev görünümünde brifing ve değerlendirme bulunur. Dönüş düğmelerine basılı tutun, bırakınca mevcut baş seçilir. Bir dereceyi doğrudan yazmak için sayı alanını düzenleyip Bitti/Enter tuşuna basın veya alan dışına dokunun. Ekran döndürülebilir; yakınlaştırma engellenmez. Bilgisayarda boşluk duraklatır, sol/sağ oklar geçici yatış verir. Sekme arka plana geçince uçuş duraklatılır.
+
+## Uçuş tekrarı ve geri bildirim
+
+Bir görevi bitirdikten sonra **Uçuş defteri → İncele** ile kaydı açın. Zaman sürgüsü veya olay satırlarıyla aynı anın HSI, uçuş izi, NAV1/NAV2, iki CRS, ADF, bearing kaynakları, seçili baş ve yer izini karşılaştırın. Oynatma hızı 0.5×–4× arasında seçilebilir. Tekrar kumandaları canlı uçuşu değiştirmez; sınavın kendi geri bildirimi ancak uçuş bitince açılır.
+
+Açıklamalar yedi görevin ayrı koşullarını kullanır; ayar/sinyal eksikliği pilotaj hatası sayılmaz. Bunlar kayıtlı geometriye dayalı eğitim açıklamalarıdır, pilotun niyetine ilişkin tahmin veya sertifikalı değerlendirme değildir. Geometri yaklaşık 0.25 saniyede bir, ayar değişiklikleri ayrıca kaydedilir; kareler arasında yapay alıcı durumu üretilmez.
+
+Son 50 sonuç özeti mevcut yerel uçuş defterinde, son 20 ayrıntılı tekrar IndexedDB içinde tutulur. Aynı cihazdaki farklı site adresleri veya farklı tarayıcılar eşitlenmez. Tarayıcı verilerini silmek kayıtları da siler; depolama kapalı/doluysa ayrıntılı tekrar yalnız oturumda kalabilir ve uyarı gösterilir. Eski sonuçlar korunur fakat geçmişte kaydedilmemiş uçuşlara tekrar oluşturulmaz. Kayıt başına 12.000 kare sınırı aşılırsa erken tarihçe ve son kare korunur, aradaki boşluk belirtilir.
 
 ## Eğitim kaynakları ve sınırlar
 

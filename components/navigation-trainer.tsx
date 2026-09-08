@@ -62,6 +62,16 @@ import {
   type Setup,
 } from '@/lib/training';
 import curriculum from '@/lib/curriculum.json';
+import {
+  captureFrame,
+  newRecording,
+  finishRecording,
+  summarizeRecording,
+  validReviewSummary,
+  type RecordingBuffer,
+  type FlightRecording,
+} from '@/lib/flight-review';
+import { saveRecording, RECORDING_LIMIT } from '@/lib/replay-store';
 
 type Flight = Setup & {
   ac: Aircraft;
@@ -118,6 +128,10 @@ export default function NavigationTrainer() {
     manual = useRef(0);
   const activePointer = useRef<number | null>(null);
   const briefingRequested = useRef(false);
+  const recording = useRef<RecordingBuffer | null>(null);
+  const [sessionRecordings, setSessionRecordings] = useState<
+    ReadonlyMap<string, FlightRecording>
+  >(new Map());
   const [controlEpoch, setControlEpoch] = useState(0);
   const [mobileView, setMobileView] = useState('cockpit');
   const [pane, setPane] = useState('flight'),
@@ -151,6 +165,7 @@ export default function NavigationTrainer() {
     }
   }, [pane, mobileView, lesson, selected]);
   const commit = useCallback((next: Flight) => {
+    captureFrame(recording.current, next, manual.current);
     state.current = next;
     setFlight(next);
   }, []);
@@ -161,10 +176,37 @@ export default function NavigationTrainer() {
   const finish = useCallback(
     (f: Flight) => {
       const m = MISSIONS.find((x) => x.id === f.missionId);
+      if (!m || state.current.missionId !== m.id) return;
       if (m) {
-        setResults((r) => [grade(m, f.metrics, f.exam), ...r].slice(0, 50));
+        const result = grade(m, f.metrics, f.exam);
+        const buffer = recording.current;
+        if (buffer && buffer.mission === m.id) {
+          captureFrame(buffer, { ...f, running: false }, manual.current, true);
+          const replay = finishRecording(buffer, result);
+          result.review = summarizeRecording(replay, result);
+          setSessionRecordings((previous) => {
+            const next = new Map(previous);
+            next.set(result.id, replay);
+            while (next.size > RECORDING_LIMIT)
+              next.delete(next.keys().next().value!);
+            return next;
+          });
+          void saveRecording(replay).catch(() =>
+            setStorageWarning((previous) =>
+              [
+                previous,
+                'Ayrıntılı uçuş tekrarı bu oturumda kullanılabilir, fakat tarayıcıya kaydedilemedi.',
+              ]
+                .filter(Boolean)
+                .join(' '),
+            ),
+          );
+        }
+        recording.current = null;
+        setResults((r) => [result, ...r].slice(0, 50));
         setPane('results');
       }
+      activePointer.current = null;
       manual.current = 0;
       commit({ ...f, running: false, missionId: null });
     },
@@ -190,6 +232,10 @@ export default function NavigationTrainer() {
                       typeof r.id === 'string' &&
                       MISSIONS.some((m) => m.id === r.mission),
                   )
+                  .map((r: FlightResult) => ({
+                    ...r,
+                    review: validReviewSummary(r.review) ? r.review : undefined,
+                  }))
                   .slice(0, 50)
               : [],
           );
@@ -262,6 +308,7 @@ export default function NavigationTrainer() {
         next.metrics = m
           ? evaluate(m, next.metrics, next.ac, next, dt)
           : { ...next.metrics, elapsed: next.metrics.elapsed + dt };
+        captureFrame(recording.current, next, manual.current);
         remaining -= dt;
         if (m && (next.metrics.done || next.metrics.elapsed >= m.limit)) {
           finish(next);
@@ -352,7 +399,7 @@ export default function NavigationTrainer() {
     activePointer.current = null;
     setControlEpoch((n) => n + 1);
     const ac = missionSpawn(m);
-    commit({
+    const prepared: Flight = {
       ...initial(),
       ac,
       bug: ac.heading,
@@ -364,7 +411,9 @@ export default function NavigationTrainer() {
       exam,
       rate: 1,
       trail: [ac],
-    });
+    };
+    recording.current = newRecording(prepared);
+    commit(prepared);
     setSelected(m.id);
     setMobileView('cockpit');
     setStandby(['112.50', '108.80', '396.0']);
@@ -388,6 +437,7 @@ export default function NavigationTrainer() {
     change({ wind, ac });
   };
   const resetFree = () => {
+    recording.current = null;
     setControlEpoch((n) => n + 1);
     activePointer.current = null;
     setMobileView('cockpit');
@@ -1071,8 +1121,10 @@ export default function NavigationTrainer() {
             />
           ) : pane === 'quiz' ? null : pane === 'results' ? (
             <Debrief
+              key={results[0]?.id ?? 'empty'}
               results={results}
               quizzes={quizzes}
+              sessionRecordings={sessionRecordings}
               onRetry={(id) => {
                 if (mission) {
                   setNotice('Yeni görevden önce mevcut görevi bitir.');
@@ -1276,7 +1328,7 @@ export default function NavigationTrainer() {
         </aside>
       </main>
       <footer className="app-footer">
-        <span>RADIO LAB · Uçuş masası / 11</span>
+        <span>RADIO LAB · Açıklamalı uçuş tekrarı / 12</span>
         <span>Model: 120 KTAS · 4.200 ft sabit · 6°E senaryo varyasyonu</span>
         <button onClick={() => go('sources')}>
           Kaynaklar ve sınırlamalar <ArrowRight size={14} />

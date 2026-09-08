@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import curriculum from '@/lib/curriculum.json';
 import { MISSIONS, type FlightResult } from '@/lib/training';
 import { Time } from './trainer-controls';
+import { FlightReview } from './flight-review';
+import type { FlightRecording } from '@/lib/flight-review';
 
 export function Citations({
   citations,
@@ -271,16 +273,21 @@ export function Debrief({
   results,
   quizzes,
   onRetry,
+  sessionRecordings,
 }: {
   results: FlightResult[];
   quizzes: QuizResult[];
   onRetry: (id: string) => void;
+  sessionRecordings: ReadonlyMap<string, FlightRecording>;
 }) {
-  const latest = results[0];
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const latest = results.find((r) => r.id === selectedId) ?? results[0];
   return (
     <article className="learning-article">
       <div className="eyebrow">UÇUŞ DEFTERİ · BU TARAYICIDA SAKLANIR</div>
-      <h1>Her uçuş, bir sonraki için.</h1>
+      <h1 id="flight-result-heading" tabIndex={-1}>
+        Uçuşunu birlikte inceleyelim.
+      </h1>
       {latest ? (
         <>
           <div className="debrief-score">
@@ -294,6 +301,10 @@ export function Debrief({
               </span>
               <h2>{MISSIONS.find((m) => m.id === latest.mission)?.title}</h2>
               <p>{latest.reason}</p>
+              <small>
+                {new Date(latest.date).toLocaleString('tr-TR')} ·{' '}
+                {latest.exam ? 'Sınav' : 'Rehberli'}
+              </small>
             </div>
           </div>
           <div className="metric-grid">
@@ -330,6 +341,11 @@ export function Debrief({
               </b>
             </div>
           </div>
+          <FlightReview
+            key={latest.id}
+            result={latest}
+            sessionRecording={sessionRecordings.get(latest.id)}
+          />
           <p className="muted">
             Sapmalar, doğru alıcı/course ayarında ve sinyal geçerliyken tüm uçuş
             boyunca ölçülür; önleme bölümü dahildir. RMS, karesel ortalama
@@ -367,6 +383,18 @@ export function Debrief({
               </small>
             </div>
             <span className={r.passed ? 'signal' : 'amber'}>{r.score}/100</span>
+            <Button
+              variant={r.id === latest?.id ? 'secondary' : 'outline'}
+              onClick={() => {
+                setSelectedId(r.id);
+                requestAnimationFrame(() =>
+                  document.getElementById('flight-result-heading')?.focus(),
+                );
+              }}
+              aria-label={`${MISSIONS.find((m) => m.id === r.mission)?.title}, ${new Date(r.date).toLocaleString('tr-TR')} uçuşunu incele`}
+            >
+              İncele
+            </Button>
             <Button
               variant="ghost"
               onClick={() => onRetry(r.mission)}
