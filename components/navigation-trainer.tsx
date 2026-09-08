@@ -841,7 +841,7 @@ export default function NavigationTrainer() {
                   dönüş yapabilirsin. Bırakınca mevcut baş seçilir.
                 </p>
                 <p>
-                  Dokunmatik yatış düğmeleri Kokpit görünümünde, HSI'ın
+                  Dokunmatik yatış düğmeleri Kokpit görünümünde, HSI’ın
                   altındadır.
                 </p>
                 <p className="muted">
