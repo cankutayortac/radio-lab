@@ -780,6 +780,10 @@ details[open] > summary {
 }
 .angle-control {
   min-width: 0;
+  padding: 12px;
+  border: 1px solid #455967;
+  border-radius: 8px;
+  background: #152128;
 }
 .control-label {
   display: flex;
@@ -827,6 +831,78 @@ details[open] > summary {
 }
 [data-slot='slider-track'] {
   height: 4px !important;
+}
+.stable-slider {
+  padding: 0 14px;
+}
+.stable-slider [data-slot='slider'] > div {
+  min-height: 44px;
+}
+.stable-slider [data-slot='slider-thumb'] {
+  width: 24px !important;
+  height: 24px !important;
+  background: #d9faff;
+  border: 3px solid #42a5b8;
+  box-shadow: 0 1px 7px #0009;
+}
+.stable-slider [data-slot='slider-track'] {
+  height: 6px !important;
+  background: #425966;
+}
+.stable-slider [data-slot='slider-range'] {
+  background: #58c7d9;
+}
+.angle-control .control-label {
+  margin-bottom: 6px;
+  gap: 8px;
+}
+.angle-control .angle-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #d9e9ef;
+}
+.angle-control .control-label input {
+  width: 78px;
+  height: 44px;
+  font-size: 23px;
+}
+.angle-control .control-label [data-slot='button'] {
+  min-height: 36px;
+  height: auto;
+  font-size: 12px;
+  padding: 7px 9px;
+}
+.angle-hint {
+  font-size: 13px;
+  color: #acbec8;
+  line-height: 1.5;
+  margin: 10px 0 0;
+}
+.angle-control .slider-scale {
+  font-size: 12px;
+  margin-top: 0;
+}
+.selected-settings {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-family: var(--font-geist-mono), monospace;
+  color: #a3c5d3;
+}
+.selected-settings > span {
+  margin-left: 6px;
+}
+.selected-settings b {
+  color: #78e3ed;
+  font-size: 14px;
+}
+@media (max-width: 1450px) {
+  .instrument-controls {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 .radio-stack {
   background: #172229;

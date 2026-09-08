@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { ArrowLeftRight, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,92 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { fmt, morse, validFrequency, type Reception } from '@/lib/navigation';
+import {
+  fmt,
+  morse,
+  norm,
+  validFrequency,
+  type Reception,
+} from '@/lib/navigation';
+
+// Hidden panels have zero dimensions. Center alignment keeps the thumb based on
+// its value, not a cached measurement, and canceling remounts any pending drag.
+export function StableSlider({
+  label,
+  value,
+  min = 0,
+  max = 359,
+  step = 1,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  onChange: (value: number) => void;
+}) {
+  const active = useRef(false);
+  const [session, setSession] = useState(0);
+  useEffect(() => {
+    const cancel = () => {
+      active.current = false;
+      setSession((n) => n + 1);
+    };
+    const hidden = () => {
+      if (document.hidden) cancel();
+    };
+    const end = () => {
+      active.current = false;
+    };
+    window.addEventListener('blur', cancel);
+    document.addEventListener('visibilitychange', hidden);
+    document.addEventListener('pointercancel', cancel);
+    document.addEventListener('touchcancel', cancel);
+    document.addEventListener('pointerup', end);
+    document.addEventListener('touchend', end);
+    return () => {
+      active.current = false;
+      window.removeEventListener('blur', cancel);
+      document.removeEventListener('visibilitychange', hidden);
+      document.removeEventListener('pointercancel', cancel);
+      document.removeEventListener('touchcancel', cancel);
+      document.removeEventListener('pointerup', end);
+      document.removeEventListener('touchend', end);
+    };
+  }, []);
+  return (
+    <div className="stable-slider">
+      <Slider
+        key={session}
+        aria-label={label}
+        thumbAlignment="center"
+        value={[Math.max(min, Math.min(max, value))]}
+        min={min}
+        max={max}
+        step={step}
+        onPointerDownCapture={(e) => {
+          active.current = e.isPrimary && e.button === 0;
+        }}
+        onTouchStartCapture={() => {
+          active.current = true;
+        }}
+        onValueChange={(next, details) => {
+          const n = Array.isArray(next) ? next[0] : next;
+          if (
+            !Number.isFinite(n) ||
+            ((details.reason === 'drag' || details.reason === 'track-press') &&
+              !active.current)
+          ) {
+            details.cancel();
+            return;
+          }
+          onChange(n);
+        }}
+      />
+    </div>
+  );
+}
 
 export function Choice({
   label,
@@ -54,39 +139,69 @@ export function AngleControl({
   onChange,
   onSync,
   syncLabel,
+  hint,
 }: {
   label: string;
   value: number;
   onChange: (v: number) => void;
   onSync?: () => void;
   syncLabel?: string;
+  hint?: string;
 }) {
-  const [draft, setDraft] = useState<string | null>(null);
-  const commitDraft = () => {
-    if (
-      draft !== null &&
-      draft.trim() !== '' &&
-      Number.isFinite(Number(draft))
-    ) {
-      onChange(((Math.round(Number(draft)) % 360) + 360) % 360);
-    }
+  const id = useId();
+  const selected = norm(Math.round(value));
+  const pending = useRef<{ text: string; base: number; label: string } | null>(
+    null,
+  );
+  const [draft, setDraft] = useState<{
+    text: string;
+    base: number;
+    label: string;
+  } | null>(null);
+  const clearDraft = () => {
+    pending.current = null;
     setDraft(null);
+  };
+  const validDraft = draft?.base === selected && draft.label === label;
+  const applyValue = (next: number) => {
+    clearDraft();
+    if (Number.isFinite(next)) onChange(norm(Math.round(next)));
+  };
+  const commitDraft = () => {
+    const edit = pending.current;
+    clearDraft();
+    if (
+      edit &&
+      edit.base === selected &&
+      edit.label === label &&
+      edit.text.trim() !== '' &&
+      Number.isFinite(Number(edit.text))
+    ) {
+      onChange(norm(Math.round(Number(edit.text))));
+    }
   };
   return (
     <div className="angle-control">
       <div className="control-label">
-        <span className="angle-title">{label}</span>
+        <label className="angle-title" htmlFor={id}>
+          {label}
+        </label>
         <Input
+          id={id}
           aria-label={`${label} derece`}
-          type="number"
-          min={0}
-          max={359}
-          step={1}
+          aria-describedby={hint ? `${id}-hint` : undefined}
+          type="text"
           inputMode="numeric"
           enterKeyHint="done"
-          value={draft ?? Math.round(value)}
-          onFocus={() => setDraft(String(Math.round(value)))}
-          onChange={(e) => setDraft(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+          value={validDraft ? draft.text : fmt(selected)}
+          onFocus={(e) => e.currentTarget.select()}
+          onChange={(e) => {
+            const edit = { text: e.target.value, base: selected, label };
+            pending.current = edit;
+            setDraft(edit);
+          }}
           onBlur={commitDraft}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -94,30 +209,36 @@ export function AngleControl({
               e.currentTarget.blur();
             }
             if (e.key === 'Escape') {
-              setDraft(null);
+              e.preventDefault();
+              clearDraft();
             }
           }}
         />
         <span>°</span>
         {onSync && (
-          <Button size="sm" variant="ghost" onClick={onSync}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              clearDraft();
+              onSync();
+            }}
+          >
             {syncLabel}
           </Button>
         )}
       </div>
-      <Slider
-        aria-label={label}
-        value={[Math.round(value)]}
-        min={0}
-        max={359}
-        step={1}
-        onValueChange={(v) => onChange(Array.isArray(v) ? v[0] : v)}
-      />
+      <StableSlider label={label} value={selected} onChange={applyValue} />
       <div className="slider-scale">
         <span>000°</span>
         <span>180°</span>
         <span>359°</span>
       </div>
+      {hint && (
+        <p id={`${id}-hint`} className="angle-hint">
+          {hint}
+        </p>
+      )}
     </div>
   );
 }

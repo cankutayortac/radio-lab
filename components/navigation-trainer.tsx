@@ -20,12 +20,17 @@ import {
   Wind as WindIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrainerHSI, type BearingSource } from './trainer-hsi';
 import { TrainerMap } from './trainer-map';
-import { AngleControl, Choice, Radio, Time } from './trainer-controls';
+import {
+  AngleControl,
+  StableSlider,
+  Choice,
+  Radio,
+  Time,
+} from './trainer-controls';
 import {
   Debrief,
   KnowledgeTest,
@@ -112,6 +117,7 @@ export default function NavigationTrainer() {
     state = useRef(flight),
     manual = useRef(0);
   const activePointer = useRef<number | null>(null);
+  const [controlEpoch, setControlEpoch] = useState(0);
   const [mobileView, setMobileView] = useState('cockpit');
   const [pane, setPane] = useState('flight'),
     [selected, setSelected] = useState(MISSIONS[0].id),
@@ -253,18 +259,25 @@ export default function NavigationTrainer() {
         );
       commit(next);
     }, 100);
-    const visibility = () => {
+    const suspend = () => {
       activePointer.current = null;
       manual.current = 0;
-      if (document.hidden && state.current.running) {
+      if (state.current.running) {
         change({ running: false });
-        setNotice('Sekme arka plana geçtiği için uçuş duraklatıldı.');
+        setNotice(
+          'Uçuş duraklatıldı. CRS ve seçili HDG korundu; hazır olduğunda devam et.',
+        );
       }
     };
+    const visibility = () => {
+      if (document.hidden) suspend();
+    };
     document.addEventListener('visibilitychange', visibility);
+    window.addEventListener('blur', suspend);
     return () => {
       clearInterval(tick);
       document.removeEventListener('visibilitychange', visibility);
+      window.removeEventListener('blur', suspend);
     };
   }, [commit, change, finish]);
   useEffect(() => {
@@ -298,11 +311,9 @@ export default function NavigationTrainer() {
     };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
-    window.addEventListener('blur', release);
     return () => {
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
-      window.removeEventListener('blur', release);
     };
   }, [change, pane]);
   const mission = MISSIONS.find((m) => m.id === flight.missionId) ?? null,
@@ -323,6 +334,8 @@ export default function NavigationTrainer() {
   const loadMission = (id = selected) => {
     const m = MISSIONS.find((x) => x.id === id) ?? MISSIONS[0];
     manual.current = 0;
+    activePointer.current = null;
+    setControlEpoch((n) => n + 1);
     const ac = missionSpawn(m);
     commit({
       ...initial(),
@@ -346,9 +359,10 @@ export default function NavigationTrainer() {
       'Görev hazır. Frekansları ve course’u ayarla, ardından uçuşu başlat.',
     );
   };
-  const setCourse = (value: number) => {
+  const setCourse = (value: number, source = flight.source) => {
+    if (!Number.isFinite(value)) return;
     const courses: [number, number] = [...state.current.courses];
-    courses[state.current.source - 1] = norm(value);
+    courses[source - 1] = norm(value);
     change({ courses });
   };
   const setWind = (wind: Wind) => {
@@ -359,6 +373,7 @@ export default function NavigationTrainer() {
     change({ wind, ac });
   };
   const resetFree = () => {
+    setControlEpoch((n) => n + 1);
     activePointer.current = null;
     setMobileView('cockpit');
     manual.current = 0;
@@ -391,10 +406,12 @@ export default function NavigationTrainer() {
     manual.current = direction;
   };
   const release = () => {
+    const wasTurning = manual.current !== 0;
     activePointer.current = null;
     manual.current = 0;
-    change({ bug: state.current.ac.heading });
+    if (wasTurning) change({ bug: state.current.ac.heading });
   };
+  const controlContext = `${pane}:${mobileView}:${controlEpoch}`;
   return (
     <div className="trainer-app">
       <header className="app-header">
@@ -428,6 +445,16 @@ export default function NavigationTrainer() {
         <div>
           <span className="eyebrow">ÇALIŞMA ALANI</span>
           <b>{mission ? mission.title : 'İstanbul · Serbest uçuş'}</b>
+          <span
+            className="selected-settings"
+            aria-label="Seçili seyrüsefer ayarları"
+          >
+            NAV{flight.source} · CRS{' '}
+            <b>{fmt(flight.courses[flight.source - 1])}°</b>
+            <span>
+              HDG <b>{fmt(flight.bug)}°</b>
+            </span>
+          </span>
           {mission && (
             <span className="mode-chip">
               {flight.exam ? 'SINAV' : 'REHBERLİ'}
@@ -495,7 +522,8 @@ export default function NavigationTrainer() {
           className="compact-view-switch"
           value={mobileView}
           onValueChange={(v) => {
-            release();
+            activePointer.current = null;
+            manual.current = 0;
             setMobileView(String(v));
           }}
           aria-label="Uçuş ekranı"
@@ -851,6 +879,7 @@ export default function NavigationTrainer() {
                 {!mission ? (
                   <>
                     <AngleControl
+                      key={`${controlContext}:wind-direction`}
                       label="Rüzgâr yönü (FROM · °M)"
                       value={flight.wind.from}
                       onChange={(v) => setWind({ ...flight.wind, from: v })}
@@ -858,16 +887,17 @@ export default function NavigationTrainer() {
                     <label className="control-label">
                       Rüzgâr şiddeti <b>{flight.wind.speed} kt</b>
                     </label>
-                    <Slider
-                      aria-label="Rüzgâr şiddeti"
+                    <StableSlider
+                      key={`${controlContext}:wind-speed`}
+                      label="Rüzgâr şiddeti"
                       min={0}
                       max={40}
                       step={1}
-                      value={[flight.wind.speed]}
-                      onValueChange={(v) =>
+                      value={flight.wind.speed}
+                      onChange={(v) =>
                         setWind({
                           ...flight.wind,
-                          speed: Array.isArray(v) ? v[0] : v,
+                          speed: v,
                         })
                       }
                     />
@@ -974,9 +1004,10 @@ export default function NavigationTrainer() {
             </div>
             <div className="instrument-controls">
               <AngleControl
+                key={`${controlContext}:nav${flight.source}`}
                 label={`CRS · NAV${flight.source}`}
                 value={flight.courses[flight.source - 1]}
-                onChange={setCourse}
+                onChange={(v) => setCourse(v, flight.source)}
                 onSync={
                   flight.exam && mission
                     ? undefined
@@ -985,13 +1016,16 @@ export default function NavigationTrainer() {
                       }
                 }
                 syncLabel="TO merkezle"
+                hint="İstenen yol. Rüzgâr düzeltmesi için bu değeri değil, HDG’yi değiştir."
               />
               <AngleControl
+                key={`${controlContext}:hdg`}
                 label="HDG · seçili baş"
                 value={flight.bug}
                 onChange={(v) => change({ bug: v })}
                 onSync={() => change({ bug: flight.ac.heading })}
                 syncLabel="Başla eşle"
+                hint={`Uçulan baş ${fmt(flight.ac.heading)}° · Seçili başa dönüşü kumanda eder.`}
               />
             </div>
             <div className="touch-flight-controls">
@@ -1015,10 +1049,16 @@ export default function NavigationTrainer() {
                     if (activePointer.current === e.pointerId) release();
                   }}
                   onPointerCancel={(e) => {
-                    if (activePointer.current === e.pointerId) release();
+                    if (activePointer.current === e.pointerId) {
+                      activePointer.current = null;
+                      manual.current = 0;
+                    }
                   }}
                   onLostPointerCapture={(e) => {
-                    if (activePointer.current === e.pointerId) release();
+                    if (activePointer.current === e.pointerId) {
+                      activePointer.current = null;
+                      manual.current = 0;
+                    }
                   }}
                   onContextMenu={(e) => e.preventDefault()}
                   onKeyDown={(e) => {
@@ -1031,8 +1071,9 @@ export default function NavigationTrainer() {
                     if (e.key === ' ' || e.key === 'Enter') release();
                   }}
                   onBlur={() => {
-                    if (activePointer.current === null && manual.current !== 0)
-                      release();
+                    // The other bank button may have received pointerdown
+                    // before this button loses focus. Do not cancel its turn.
+                    if (activePointer.current === null) manual.current = 0;
                   }}
                 >
                   {d < 0 ? <ArrowLeft /> : <ArrowRight />}
