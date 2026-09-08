@@ -1,0 +1,1302 @@
+{
+  "scopeNote": "Ders ve görev ölçütleri bu uygulamanın alıştırmaları içindir; SHGM, EASA, ICAO veya FAA sınav/geçme standardı değildir. Gerçek uçuşta güncel kart, uçak el kitabı, işletme usulleri ve yetkili eğitmen esas alınır.",
+  "citationConvention": "pdfPages alanları dosyanın 1 tabanlı PDF sayfa numaralarıdır. IFR.PDF içindeki B2-xx/234 basılı sayfa numaraları ile aynı değildir.",
+  "lessons": [
+    {
+      "id": "orientation-adf",
+      "order": 1,
+      "title": "Önce konum: ADF ve kerteriz",
+      "durationMinutes": 8,
+      "difficulty": "Temel",
+      "summary": "Baş, istasyona kerteriz ve istasyondan kerterizi birbirinden ayır; ibrenin hangi kaynağı gösterdiğini doğrula.",
+      "objectives": [
+        "RMI/HSI üzerinde seçili ADF kaynağını bulmak",
+        "İbre ucundan QDM, kuyruğundan QDR okumak",
+        "Baş değişse de konumun aynı anda değişmediğini kavramak"
+      ],
+      "concepts": [
+        "Heading, uçağın burnunun baktığı yöndür. QDM uçaktan NDB'ye, QDR NDB'den uçağa olan manyetik kerterizdir.",
+        "Manyetik kartı doğru çalışan bir RMI/HSI bearing göstergesinde uç QDM'yi, kuyruk QDR'yi verir. Aralarında 180° vardır.",
+        "Önce istasyon frekansı, kimliği ve gösterge kaynağı birlikte doğrulanır. Bir ibrenin hareket etmesi doğru istasyonun seçili olduğunu kanıtlamaz.",
+        "RMI'nin manyetik kartı ile sabit kartlı ADF aynı şekilde okunmaz; bu dersteki sayısal örnekler manyetik RMI/HSI içindir."
+      ],
+      "workedExample": "Baş 230°, ADF ibre ucu 072° ise QDM 072°, QDR 252°'dir. Uçağın burnu 230°'ye baksa da istasyon 072° yönündedir.",
+      "cockpitFlow": [
+        "Kaynağı seç",
+        "İstasyon kimliğini doğrula",
+        "Uç ve kuyruğu oku",
+        "Haritada istasyona göre tarafını tahmin et",
+        "Haritayı açıp kontrol et"
+      ],
+      "misconception": "İbre ucundaki sayı uçağın mevcut başı değildir; istasyonun yönüdür.",
+      "practice": "Harita kapalıyken üç farklı konumda QDM/QDR ve istasyon tarafını tahmin et.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            39,
+            41,
+            42
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            45,
+            46
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vor-inbound",
+      "order": 2,
+      "title": "VOR inbound: radyali yakala",
+      "durationMinutes": 10,
+      "difficulty": "Temel",
+      "summary": "İstasyona giden course'u seç, doğru taraftan önle ve CDI merkezlenirken yol takibine geç.",
+      "objectives": [
+        "Radyal ile inbound course'un ters yönler olduğunu göstermek",
+        "Önleme yönünü harita geometrisinden seçmek",
+        "CDI kapanma hızını izleyerek dönüşü önden başlatmak"
+      ],
+      "concepts": [
+        "VOR radyali istasyondan dışarı tanımlanır. R270 üzerinde istasyona giden yolun course'u 090°'dir.",
+        "Seçilen course 090° olduğunda R270 tarafında merkezli CDI ve TO beklenir. TO/FROM, seçilen course ile konum ilişkisini anlatır.",
+        "Önleme başı, mevcut konumdan hedef hattı kesecek şekilde seçilir. Sadece hedef course'a paralel uçmak, yanal hatayı kendiliğinden kapatmaz.",
+        "Önleme açısı mesafe, hız, rüzgâr ve dönüş kabiliyetine bağlıdır. CDI hızlı kapanıyorsa hedef yola dönüş daha erken planlanır."
+      ],
+      "workedExample": "Rüzgârsız durumda R255/12 NM'den R270 üzerinde 090° inbound yola geç. 060° gibi kuzeydoğuya yönelen bir önleme başı hattı keser; CDI yaklaşınca 090° yoluna dön.",
+      "cockpitFlow": [
+        "VOR'u tanı",
+        "Inbound course'u seç",
+        "TO/FROM ve konumu karşılaştır",
+        "Önleme başını uç",
+        "CDI yaklaşırken dönüşü başlat",
+        "Rüzgâr düzeltmesiyle izle"
+      ],
+      "misconception": "R270 inbound ifadesi 270° başta istasyona gitmek anlamına gelmez.",
+      "practice": "R255'ten 090° inbound hattı yakala ve istasyondan uzakta 30 saniye koru.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            47,
+            48,
+            49,
+            56,
+            57
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            63,
+            64,
+            65
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vor-outbound",
+      "order": 3,
+      "title": "VOR outbound: radyale yerleş",
+      "durationMinutes": 10,
+      "difficulty": "Temel",
+      "summary": "İstasyondan uzaklaşan hedef radyali yakalarken course, heading ve FROM bilgisini ayrı oku.",
+      "objectives": [
+        "Outbound course'u hedef radyalle eşleştirmek",
+        "Radyali kesecek bir önleme başı seçmek",
+        "Merkezli CDI ile gerçekten uzaklaşmayı ayrı doğrulamak"
+      ],
+      "concepts": [
+        "R110 outbound için hedef course 110°'dir. Rüzgâr varsa bu yol üzerinde kalmak için uçulan baş 110°'den farklı olabilir.",
+        "Mevcut radyalden hedef radyale geçişte önleme başı hedef hattı kesmelidir; rüzgârsız durumda yalnız hedef course'u uçmak mevcut yanal mesafeyi korur.",
+        "FROM bayrağı yalnızca gerçek uzaklaşma göstergesi değildir. Uçak R090'da, OBS 090° seçili iken baş 270° de olsa FROM görülür.",
+        "Yol yakalandıktan sonra CDI, radyal eğilimi ve DME'nin artması birlikte izlenir."
+      ],
+      "workedExample": "R090/8 NM'den R110'a geçmek için rüzgârsız modelde 140° önleme başı kullanılabilir. R110 yaklaşınca 110° course'una dön ve mesafenin arttığını kontrol et.",
+      "cockpitFlow": [
+        "Hedef radyali seç",
+        "Konumu ve FROM'u kontrol et",
+        "Hedef hattı kesen başı uç",
+        "CDI kapanmasını izle",
+        "Hedef yola dön",
+        "Mesafe eğilimini doğrula"
+      ],
+      "misconception": "FROM görmek, uçağın burnunun mutlaka istasyondan uzağa baktığını göstermez.",
+      "practice": "R110'u yakala; 30 saniye boyunca radyal hatasını azaltarak uzaklaş.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            49,
+            50,
+            51,
+            56,
+            57,
+            63
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            53,
+            54,
+            63,
+            64,
+            65
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crosswind-tracking",
+      "order": 4,
+      "title": "Yan rüzgâr: başı değiştir, yolu koru",
+      "durationMinutes": 10,
+      "difficulty": "Orta",
+      "summary": "Homing ile tracking'i karşılaştır ve yer izini koruyacak rüzgâr düzeltmesini bul.",
+      "objectives": [
+        "Homing'in yan rüzgârda kavisli iz oluşturmasını açıklamak",
+        "Heading ile track farkını okumak",
+        "Küçük düzeltmeleri trend gözlemleyerek ayarlamak"
+      ],
+      "concepts": [
+        "Homing sırasında burun sürekli istasyona çevrilir. Yan rüzgâr uçağı sürükledikçe yeni bir baş gerekir; yer izi kıvrılır.",
+        "Tracking'de istenen yer yolu sabittir. Uçağın burnu rüzgâra doğru çevrilerek yanal sürüklenme dengelenir.",
+        "090° yer yolu için kuzeyden gelen rüzgâr uçağı güneye iter. Yolu korumak için baş 090°'den biraz küçük olur.",
+        "Baş ile yer izi arasındaki fark rüzgâr düzeltmesidir. Hava hızı, yer hızı ve gösterge hızı birbirinin yerine kullanılmaz."
+      ],
+      "workedExample": "Basit modelde TAS 100 kt, istenen track 090°, rüzgâr 360°/10 kt olsun. Yaklaşık 6° kuzeye düzeltme ile heading 084° civarı olur; nihai ayar track/CDI eğilimiyle yapılır.",
+      "cockpitFlow": [
+        "İstenen track'i belirle",
+        "Rüzgârın iteceği tarafı tahmin et",
+        "Rüzgâra baş düzeltmesi ver",
+        "Kısa süre trendi gözle",
+        "Küçük düzeltmeyle yolu sabitle"
+      ],
+      "misconception": "İbreyi sürekli burunda tutmak, sabit bir inbound yolunu rüzgârda takip etmekle aynı değildir.",
+      "practice": "Aynı başlangıç ve rüzgârla homing ile tracking uçuşlarını karşılaştır.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            40,
+            43,
+            44,
+            46,
+            47,
+            49,
+            58
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            47,
+            49,
+            50,
+            66
+          ]
+        }
+      ]
+    },
+    {
+      "id": "station-passage",
+      "order": 5,
+      "title": "İstasyon geçişini tanı",
+      "durationMinutes": 7,
+      "difficulty": "Orta",
+      "summary": "Yakındaki hassasiyet artışını, geçici kararsızlığı ve kararlı geçiş belirtilerini ayır.",
+      "objectives": [
+        "İstasyona yakın ibre hassasiyetini açıklamak",
+        "Geçici salınımı büyük kumandayla kovalamamak",
+        "VOR istasyonu ile uzak bir fiksin geçişini ayırmak"
+      ],
+      "concepts": [
+        "İstasyona yaklaşıldığında küçük yanal mesafe değişiklikleri büyük açısal ibre hareketi üretir.",
+        "İbre kararsızlaşırken baş ve uçuş kontrolü korunur; tek bir ani ibre hareketi üzerinden keskin dönüş yapılmaz.",
+        "Seçili inbound course değişmeden VOR üzerinden geçişte TO/FROM dönüşü ve bearing ibresinin geriye geçmesi birlikte anlam kazanır.",
+        "İstasyondan uzaktaki RAD/DME veya iki radyal fiksi, kendi tanımıyla saptanır. Her fiks geçişinde TO/FROM değişmesi beklenmez."
+      ],
+      "workedExample": "090° inbound course ile batıdan VOR'a yaklaşırken geçişten sonra aynı course seçili kalırsa FROM beklenir. Ancak R090/12 DME fiksinden geçmek, VOR'un üzerinden geçmek değildir.",
+      "cockpitFlow": [
+        "Sabit uçuşu koru",
+        "Yakınlık ve sinyal eğilimini izle",
+        "Geçiş belirtilerini çapraz kontrol et",
+        "Geçişi işaretle",
+        "Sonraki bacağın course'unu doğrula"
+      ],
+      "misconception": "İbreyi abeam görmek, her durumda istasyonun tam üzerinden geçildiğini kanıtlamaz; istasyonun yanından da geçiliyor olabilir.",
+      "practice": "Geçici ibre salınımı ile kararlı istasyon geçişini ayırt et ve geçiş anını işaretle.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            40,
+            54,
+            63,
+            91,
+            92
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            46,
+            47
+          ]
+        }
+      ]
+    },
+    {
+      "id": "two-vor-fix",
+      "order": 6,
+      "title": "İki VOR ile fiks bul",
+      "durationMinutes": 9,
+      "difficulty": "Orta",
+      "summary": "İki bağımsız radyalin kesişimini kullanarak konumu doğrula.",
+      "objectives": [
+        "NAV1 ve NAV2 kaynaklarını ayrı tanımlamak",
+        "İbre kuyruğundan iki radyali okumak",
+        "Yol üzerindeki bir fiksi çapraz radyalle işaretlemek"
+      ],
+      "concepts": [
+        "Tek radyal bir konum hattı verir; o hat üzerindeki mesafeyi tek başına belirlemez.",
+        "İki istasyondan ölçülen radyaller, haritada bir konum tahmini verir. Gerçek ölçümler hata içerdiğinden sonuç kusursuz tek nokta kabul edilmez.",
+        "Birincil VOR ile yol takibi sürerken ikinci VOR'un radyali beklenen kesişim değerine geldiğinde fiks doğrulanabilir.",
+        "RMI kuyruğu radyali, ucu bunun 180° tersini gösterir. İki kaynak ve iki ibre karıştırılmamalıdır."
+      ],
+      "workedExample": "A istasyonunun R060 ve B istasyonunun R320 hattının kesişimi hedef fiks olsun. A R060 üzerinde ilerlerken B ibresinin kuyruğu 320°'ye yaklaştığında hedefe ulaşırsın; B ibresinin ucu 140°'dir.",
+      "cockpitFlow": [
+        "İki istasyonu tanı",
+        "Birincil yolu koru",
+        "İkinci radyali beklenen değerle karşılaştır",
+        "Kesişimde fiksi işaretle",
+        "Harita ile sonucu kontrol et"
+      ],
+      "misconception": "İkinci VOR'un yalnız ibre ucunu hedef radyal sayısıyla eşleştirmek 180° konum hatasına yol açabilir.",
+      "practice": "Harita kapalıyken iki radyali oku, fiksi tahmin et; ardından uçuşta çapraz radyal geçişini yakala.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            59,
+            60,
+            61
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            67,
+            68,
+            69,
+            70
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dme-arc",
+      "order": 7,
+      "title": "DME arkını yakala ve koru",
+      "durationMinutes": 12,
+      "difficulty": "İleri",
+      "summary": "Arka giriş, mesafe takibi ve çıkış radyaline dönüşü tek akışta birleştir.",
+      "objectives": [
+        "DME kaynağını hedef istasyonla eşleştirmek",
+        "İçten ve dıştan arka girişte önden dönüş yönünü ayırmak",
+        "DME trendi ve bearing ibresini birlikte izlemek"
+      ],
+      "concepts": [
+        "Arkın hedefi belirlenen DME mesafesini korumaktır. Bearing ibresinin kanat ucuna yakın olması yardımcı görsel ipucudur.",
+        "İstasyona doğru yaklaşırken giriş dönüşü hedef DME'den daha büyük bir mesafede; dışarı giderken daha küçük bir mesafede başlar.",
+        "Kaynaklardaki GS/200 NM hesabı bir pratik başlangıç tahminidir. Hız, dönüş oranı ve rüzgâr gerçek dönüş noktasını etkiler.",
+        "Kısa düz bacak ve küçük baş değişiklikleri bir manuel tekniktir; ark uçmanın tek mümkün biçimi değildir.",
+        "Mesafe fazla ve artıyorsa ark içine doğru küçük düzeltme gerekir. Rüzgâr nedeniyle yalnız ibreyi tam 90°'de tutmak mesafeyi garanti etmez."
+      ],
+      "workedExample": "Bu eğitimde GS/200 yaklaşımını kullan: GS 120 kt için 0,6 NM. 10 DME arka inbound girişte yaklaşık 10,6 DME; outbound girişte yaklaşık 9,4 DME başlangıç tahminidir.",
+      "cockpitFlow": [
+        "DME kaynağını doğrula",
+        "Ark mesafesi ve yönünü belirle",
+        "Önden dönüşü planla",
+        "DME/ibre/rüzgârı tarayarak arkı tut",
+        "Çıkış course'unu hazırla",
+        "Çıkış radyaline dönüşü önden başlat"
+      ],
+      "misconception": "Arkta her koşulda aynı 10° baş değişikliği veya aynı 0,5 NM önden dönüş gerekmez.",
+      "practice": "10 DME arka katıl, en az 60° yay boyunca mesafeyi koru ve tanımlı çıkış yolunu yakala.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            69,
+            70,
+            71,
+            72,
+            73,
+            76
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            103,
+            104,
+            105,
+            106,
+            107,
+            108
+          ]
+        }
+      ]
+    },
+    {
+      "id": "holding-entry",
+      "order": 8,
+      "title": "Beklemeye doğru giriş",
+      "durationMinutes": 12,
+      "difficulty": "İleri",
+      "summary": "Fiks, inbound course ve dönüş yönünden paterni kur; giriş geometrisini değerlendir.",
+      "objectives": [
+        "Standart sağ ve standart dışı sol paterni çizmek",
+        "Direkt, paralel ve teardrop girişleri ayırt etmek",
+        "Fiks geçişinden sonra seçilen girişin aşamalarını uygulamak"
+      ],
+      "concepts": [
+        "Bekleme brifingi fiks, inbound course, dönüş yönü ve görevde verilen zaman/mesafe bilgisiyle başlar.",
+        "Direkt girişte fiksten sonra paternin dönüş yönü izlenir. Paralelde outbound yola paralel geçici bacak, teardrop'ta bekleme tarafına 30° sapmalı bacak kullanılır.",
+        "Giriş seçimi, fikse varış başının paternle geometrik ilişkisine dayanır. TO/FROM tek başına giriş yöntemini belirlemez.",
+        "Standart sağ dönüşlü paternde teardrop yönü outbound course - 30°; sol dönüşlü paternde outbound course + 30° olarak hesaplanabilir. Rüzgâr varsa gerçek baş ayrıca düzeltilir.",
+        "Sektör sınırına yakın senaryolarda komşu yöntemleri mutlak yanlış sayma. Uygulama örneklerini sınırdan uzak seç; gerçek usul ve korunan saha görev sınırının yerini tutmaz."
+      ],
+      "workedExample": "Sağa dönüşlü, inbound 000° beklemede outbound 180°'dir. Fikse 000° başla varış direkt; 150° başla varış teardrop; 240° başla varış paralel örneğidir.",
+      "cockpitFlow": [
+        "Fiksi ve paterni kur",
+        "Varış başını karşılaştır",
+        "Giriş yöntemini seç",
+        "Fiksi doğrula",
+        "Giriş bacağını uç",
+        "Inbound'u yeniden yakala",
+        "Fikste girişin tamamlandığını kaydet"
+      ],
+      "misconception": "Bir bekleme VOR'un üzerinde olmadığı için paralel girişin genel olarak yasak olduğu sonucu çıkarılamaz.",
+      "practice": "Aynı patern için üç farklı gelişten direkt, teardrop ve paralel girişleri uygula.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            77,
+            80,
+            81,
+            84,
+            85
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            124,
+            125,
+            126
+          ]
+        }
+      ],
+      "caution": "Efe s.80 sektör metni literal sınıflandırma algoritması yapılmadı. Görevlerde zaman hedefleri açıkça yazılır; FAA ve ICAO zamanlama uygulamaları birleştirilmez."
+    }
+  ],
+  "questions": [
+    {
+      "id": "q01",
+      "lessonId": "orientation-adf",
+      "prompt": "Bir bearing ibresini yorumlamadan önce en gerekli kontrol hangisidir?",
+      "options": [
+        "Uçağın rengini değiştirmek",
+        "İbrenin kaynağını ve seçili istasyon kimliğini doğrulamak",
+        "Heading bug'ı 000°'ye almak",
+        "Haritayı büyütmek"
+      ],
+      "correctIndex": 1,
+      "explanation": "İbre farklı NAV veya ADF kaynağını gösterebilir. Doğru yorum için kaynak ve istasyon aynı referansa bağlanmalıdır.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            39,
+            54
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            45,
+            46,
+            63
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q02",
+      "lessonId": "orientation-adf",
+      "prompt": "Manyetik RMI'da ADF ibre ucu 072°, uçak başı 230° gösteriyor. QDM ve QDR hangisidir?",
+      "options": [
+        "QDM 230°, QDR 050°",
+        "QDM 252°, QDR 072°",
+        "QDM 072°, QDR 252°",
+        "QDM 072°, QDR 230°"
+      ],
+      "correctIndex": 2,
+      "explanation": "Uç istasyona olan QDM'yi, kuyruk bunun 180° tersi olan QDR'yi verir. Mevcut baş bu okumayı değiştirmez.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            41,
+            42
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            46
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q03",
+      "lessonId": "orientation-adf",
+      "prompt": "NDB'ye QDM 359° ise NDB'den uçağa QDR kaç derecedir?",
+      "options": [
+        "179°",
+        "181°",
+        "001°",
+        "269°"
+      ],
+      "correctIndex": 0,
+      "explanation": "Ters yön 180° farkla bulunur: 359 - 180 = 179°. Sonuç 000°–359° aralığında tutulur.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            41,
+            42
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q04",
+      "lessonId": "vor-inbound",
+      "prompt": "VOR'un R270 hattında istasyona uçmak için hedef inbound course ve beklenen bayrak hangisidir?",
+      "options": [
+        "270° / TO",
+        "090° / FROM",
+        "270° / FROM",
+        "090° / TO"
+      ],
+      "correctIndex": 3,
+      "explanation": "Radyal istasyondan dışarı tanımlanır. R270 üzerindeki istasyona giden yol ters yön olan 090°'dir; bu course seçildiğinde TO beklenir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            41,
+            44,
+            56
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            63
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q05",
+      "lessonId": "vor-inbound",
+      "prompt": "Rüzgârsız modelde uçak R255'tedir. R270 üzerinden 090° inbound hattını yakalamak için hangi baş uygun bir kesişim sağlar?",
+      "options": [
+        "090°: hedefe paralel uçmak",
+        "060°: hattı kuzeydoğu yönünde kesmek",
+        "120°: hattın güneyine gitmek",
+        "270°: batıya uzaklaşmak"
+      ],
+      "correctIndex": 1,
+      "explanation": "R255, hedef R270 hattının güneyindedir. 060° başı uçağı kuzeye ve istasyona doğru götürerek hedef hattı keser. Bu, verilen rüzgârsız geometrinin örneğidir; evrensel önleme açısı değildir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            47,
+            48,
+            49
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            63,
+            64,
+            65
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q06",
+      "lessonId": "vor-inbound",
+      "prompt": "Önleme sırasında CDI hızla merkeze yaklaşıyor. Hedef yola dönüş neye göre başlatılmalıdır?",
+      "options": [
+        "Her zaman tam merkezden sonra",
+        "Yalnız kronometre 60 saniye olunca",
+        "CDI kapanma hızı ve dönüş süresi dikkate alınarak merkezden önce",
+        "Her zaman istasyondan 10 NM'de"
+      ],
+      "correctIndex": 2,
+      "explanation": "Dönüş zaman alır. Hızlı kapanan CDI için dönüşe önden başlamak hedef hattın aşılmasını azaltır; tek sabit mil veya saniye kuralı yoktur.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            57
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            65
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q07",
+      "lessonId": "vor-outbound",
+      "prompt": "R110 üzerinde outbound yol takibi için hangi course seçimi uygundur?",
+      "options": [
+        "110° / FROM",
+        "290° / FROM",
+        "110° / TO",
+        "000° / TO"
+      ],
+      "correctIndex": 0,
+      "explanation": "Outbound course radyalin dışarı yönüyle aynıdır. R110 üzerinde 110° course seçildiğinde merkezli CDI ve FROM beklenir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            44,
+            49,
+            50,
+            51
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q08",
+      "lessonId": "vor-outbound",
+      "prompt": "Rüzgârsız durumda R090'dan R110'a geçmek isteyen uçak yalnız 110° başa dönerse ne olur?",
+      "options": [
+        "R110'u anında yakalar",
+        "TO bayrağı mutlaka görülür",
+        "VOR'un üzerinden geçer",
+        "Hedef hatta paralel kalır; yanal hatayı kapatacak önleme gerekir"
+      ],
+      "correctIndex": 3,
+      "explanation": "Aynı yönde paralel uçuş yanal mesafeyi kapatmaz. Örneğin 140° gibi hattı kesen bir baştan, hedef yaklaşınca 110° yoluna dönülebilir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            50,
+            51
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q09",
+      "lessonId": "vor-outbound",
+      "prompt": "Uçak R090 üzerinde, OBS 090° seçili ve başı 270°'dir. İdeal VOR göstergesinde hangi bayrak beklenir?",
+      "options": [
+        "Baş 270° olduğu için TO",
+        "FROM; bayrak seçili course ve konuma bağlıdır",
+        "Baş ile OBS farklı olduğu için OFF",
+        "Bayrak her saniye değişir"
+      ],
+      "correctIndex": 1,
+      "explanation": "Uçak fiziksel olarak istasyona doğru uçsa bile R090 konumu ve 090° seçimi FROM üretir. TO/FROM gerçek hareket yönünün doğrudan ölçümü değildir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            44,
+            63
+          ]
+        }
+      ],
+      "editorialNote": "Efe s.42–44'teki hareket/TO-FROM genellemesi düzeltilerek yazılmıştır; bağımsız VOR geometrisiyle kontrol edilmelidir."
+    },
+    {
+      "id": "q10",
+      "lessonId": "crosswind-tracking",
+      "prompt": "İstenen track 090°, rüzgâr kuzeyden geliyor. Yolu korumak için genel düzeltme yönü hangisidir?",
+      "options": [
+        "Baş 090°'den büyük, güneye doğru",
+        "Hiç düzeltme gerekmez",
+        "Baş 090°'den küçük, kuzeye doğru",
+        "Her durumda 180° baş"
+      ],
+      "correctIndex": 2,
+      "explanation": "Kuzeyden gelen rüzgâr uçağı güneye iter. Burun kuzeye, yani rüzgâra doğru çevrilerek bu sürüklenme dengelenir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            46,
+            47,
+            49
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            50,
+            66
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q11",
+      "lessonId": "crosswind-tracking",
+      "prompt": "Heading 084°, track 090° görülüyor. Uçağın yer üzerindeki anlık hareket yönü hangisidir?",
+      "options": [
+        "084°",
+        "174°",
+        "006°",
+        "090°"
+      ],
+      "correctIndex": 3,
+      "explanation": "Track yer hareketinin yönüdür. Heading burnun yönüdür; aradaki 6° fark bu durumda rüzgâr düzeltmesiyle uyumludur.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            43,
+            58
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            66
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q12",
+      "lessonId": "crosswind-tracking",
+      "prompt": "Yan rüzgârda ADF ibresini sürekli burunda tutarak istasyona uçmak genellikle hangi izi üretir?",
+      "options": [
+        "Rüzgâra doğru sabit düz hat",
+        "Kavisli homing izi",
+        "Sabit DME arkı",
+        "İstasyondan uzaklaşan radyal"
+      ],
+      "correctIndex": 1,
+      "explanation": "Homing'de rüzgârın yarattığı sapmanın ardından burun yeniden istasyona çevrilir. Bu sürekli değişen başlar yer izini kıvırır.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            40
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            47
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q13",
+      "lessonId": "station-passage",
+      "prompt": "İstasyona çok yakınken bearing ibresi kısa süreli salınıyor. İlk doğru yaklaşım hangisidir?",
+      "options": [
+        "Baş ve uçuş kontrolünü koruyup diğer geçiş belirtilerini izlemek",
+        "Her ibre hareketine keskin dönüşle cevap vermek",
+        "Frekansı rastgele değiştirmek",
+        "Her salınımı kesin arıza saymak"
+      ],
+      "correctIndex": 0,
+      "explanation": "Yakın bölgede göstergeler hassaslaşabilir ve kararsızlaşabilir. İbreyi kovalamak sapmayı artırır; geçiş belirtileri birlikte değerlendirilir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            40,
+            63
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            46,
+            47
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q14",
+      "lessonId": "station-passage",
+      "prompt": "Batıdan VOR'a 090° inbound course ile yaklaşıp aynı seçili course ile doğuya geçtin. Geçiş sonrası kararlı bayrak hangisidir?",
+      "options": [
+        "TO",
+        "Her zaman OFF",
+        "FROM",
+        "Bayrak yalnız başa bağlıdır"
+      ],
+      "correctIndex": 2,
+      "explanation": "Geçişten sonra uçak R090 tarafındadır. 090° course artık istasyondan dışarı yöneldiği için FROM beklenir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            54,
+            63
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            46,
+            47
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q15",
+      "lessonId": "station-passage",
+      "prompt": "VOR'dan uzaktaki R090/12 DME fiksi hangi bilgiyle doğrulanır?",
+      "options": [
+        "Mutlaka bir TO/FROM dönüşüyle",
+        "Yalnız başın 090° olmasıyla",
+        "İbre ucunun burunda olmasıyla",
+        "R090 konumunun ve 12 DME'nin birlikte gerçekleşmesiyle"
+      ],
+      "correctIndex": 3,
+      "explanation": "Bu fiks VOR istasyonunun üzerinde değildir. Radyal ve mesafe birlikte konumu tanımlar; istasyon geçişi bayrağı beklemek yanlış olur.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            91,
+            92
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q16",
+      "lessonId": "two-vor-fix",
+      "prompt": "İki VOR radyaliyle konum nasıl belirlenir?",
+      "options": [
+        "İki frekansın ortalaması alınır",
+        "İstasyondan çizilen iki radyalin kesişimi bulunur",
+        "İki uçak başı toplanır",
+        "Yalnız güçlü sinyal kullanılır"
+      ],
+      "correctIndex": 1,
+      "explanation": "Her radyal bir konum hattıdır. İki farklı istasyonun hatlarının kesişimi konum tahmini verir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            59,
+            60
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            67,
+            68
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q17",
+      "lessonId": "two-vor-fix",
+      "prompt": "İkinci VOR'un R320 hattını bekliyorsun. Manyetik RMI'da hangi okuma bu radyalle uyumludur?",
+      "options": [
+        "Uç 140°, kuyruk 320°",
+        "Uç 320°, kuyruk 140°",
+        "Uç 050°, kuyruk 230°",
+        "Baş 320°; ibre önemsiz"
+      ],
+      "correctIndex": 0,
+      "explanation": "VOR radyali ibrenin kuyruğundan okunur. R320'nin istasyona yönü 180° tersi olan 140°'dir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            41,
+            61
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            67,
+            69
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q18",
+      "lessonId": "two-vor-fix",
+      "prompt": "Birincil radyalde uçarken ikinci VOR'un tanımlı çapraz radyali geldi. Bundan önce hangi doğrulama gerekliydi?",
+      "options": [
+        "İki istasyonun aynı frekansta olması",
+        "CDI kaynağını GPS yapmak",
+        "İki alıcının doğru istasyonlara bağlı ve tanımlanmış olması",
+        "Uçağın başını ikinci radyale eşitlemek"
+      ],
+      "correctIndex": 2,
+      "explanation": "Yanlış kaynak veya istasyon, doğru görünen ancak yanlış yerde olan bir kesişim üretir. İkinci radyal izlenirken birincil yol da korunmalıdır.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            54,
+            59,
+            60,
+            61
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            63,
+            67,
+            68
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q19",
+      "lessonId": "dme-arc",
+      "prompt": "10 DME arkında korunması gereken temel büyüklük hangisidir?",
+      "options": [
+        "Her zaman 090° baş",
+        "İbre ucunun her zaman 000° olması",
+        "Her saniye aynı radyal",
+        "Seçilen istasyona yaklaşık 10 DME mesafe"
+      ],
+      "correctIndex": 3,
+      "explanation": "Ark boyunca radyal ve baş değişir; amaç tanımlı DME mesafesini korumaktır.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            69,
+            71
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            104,
+            106,
+            107
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q20",
+      "lessonId": "dme-arc",
+      "prompt": "Bu alıştırmada önden dönüş için GS/200 kullanılıyor. GS 120 kt ile 10 DME arka inbound yaklaşırken başlangıç tahmini kaç DME'dir?",
+      "options": [
+        "10,6 DME",
+        "9,4 DME",
+        "12 DME",
+        "10,0 DME"
+      ],
+      "correctIndex": 0,
+      "explanation": "120/200 = 0,6 NM. İstasyona yaklaşırken dönüş hedef mesafeden önce, 10 + 0,6 = 10,6 DME'de planlanır. Bu pratik eğitim tahminidir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            70
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            105
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q21",
+      "lessonId": "dme-arc",
+      "prompt": "İstasyon sağında kalırken 10 DME arkındasın; DME 10,4 ve artıyor. Hangi düzeltme hedefe uygundur?",
+      "options": [
+        "İstasyondan uzağa daha fazla dönmek",
+        "Her durumda başı değiştirmemek",
+        "Arkın içine, istasyona doğru küçük bir baş düzeltmesi yapmak",
+        "DME kaynağını değiştirmek"
+      ],
+      "correctIndex": 2,
+      "explanation": "Mesafe fazla ve büyüyorsa dışarı sürükleniyorsun. İçe doğru kontrollü düzeltme yapıp DME eğilimini yeniden izlemek gerekir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            71,
+            73
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            105,
+            107
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q22",
+      "lessonId": "holding-entry",
+      "prompt": "Sağa dönüşlü, inbound 000° beklemenin fiksine 000° başla geliyorsun. Hangi giriş uygundur?",
+      "options": [
+        "Paralel",
+        "Direkt",
+        "Teardrop",
+        "DME arkı"
+      ],
+      "correctIndex": 1,
+      "explanation": "Beklemenin inbound yönüyle aynı geliş, doğrudan paternin sağ dönüşünü izlemeye uygundur. Örnek sektör sınırında değildir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            84
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            125,
+            126
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q23",
+      "lessonId": "holding-entry",
+      "prompt": "Sağa dönüşlü, inbound 000° bekleme için rüzgârsız teardrop bacağının yönü kaç derecedir?",
+      "options": [
+        "030°",
+        "180°",
+        "210°",
+        "150°"
+      ],
+      "correctIndex": 3,
+      "explanation": "Outbound 180°'dir. Sağ dönüşlü paternin bekleme tarafına 30° sapma için 180 - 30 = 150° bulunur.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            84
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            125
+          ]
+        }
+      ]
+    },
+    {
+      "id": "q24",
+      "lessonId": "holding-entry",
+      "prompt": "Paralel girişin ilk geçici bacağı nasıl tarif edilir?",
+      "options": [
+        "Outbound yola paralel, bekleme aksi tarafındaki bacak",
+        "İstasyona sabit DME arkı",
+        "Outbound'tan bekleme içine 30° sapmalı bacak",
+        "Fiksten sonra doğrudan tam bir patern dönüşü"
+      ],
+      "correctIndex": 0,
+      "explanation": "Paralel girişte önce outbound yola paralel bacak uçulur; ardından inbound yol veya fiks yeniden yakalanır. 30° içe sapmalı bacak teardrop'tur.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            84
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            124
+          ]
+        }
+      ]
+    }
+  ],
+  "sourceCautions": [
+    {
+      "id": "c01",
+      "topic": "Kaynak hiyerarşisi",
+      "issue": "Efe s.2 dokümanı kişisel yardımcı not olarak tanımlar. İki PDF aynı konularda büyük ölçüde ortak metin ve örnek kullanır; iki bağımsız doğrulama kaynağı gibi sunulmamalı.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            2
+          ]
+        }
+      ],
+      "treatment": "Özgün açıklama kullan; kaynak sayfalarını göster; yetkili eğitim/operasyonel referans iddiası yapma."
+    },
+    {
+      "id": "c02",
+      "topic": "Heading, course, radial ve TO/FROM",
+      "issue": "Efe s.42–44 ve IFR s.49, ibrenin önde/arkada olmasını TO/FROM ve mevcut radyali uçulan course ile fazla geneller. Radyal konum, course istenen yol, heading burun, track yer hareketidir. VOR TO/FROM seçilen course ve konuma bağlıdır.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            42,
+            43,
+            44
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            49
+          ]
+        }
+      ],
+      "treatment": "Simülatörde bu dört değişken ayrı hesaplanmalı. Sabit konumda yalnız heading değiştirildiğinde ideal VOR CDI/TO-FROM sonucu değişmemeli."
+    },
+    {
+      "id": "c03",
+      "topic": "Homing / merkezli CDI",
+      "issue": "Efe s.55, CDI merkezde tutularak uçuşun da rüzgârda kavisli homing olacağını söyler. Sabit doğru course ve rüzgâr düzeltmesiyle merkezli CDI yol takibidir; sürekli course'u yeniden istasyona çevirmek farklıdır.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            54,
+            55,
+            57
+          ]
+        }
+      ],
+      "treatment": "Homing gösterimini burun/BRG ucu hizalama olarak, tracking'i sabit hedef yol ve rüzgâr düzeltmesi olarak kur."
+    },
+    {
+      "id": "c04",
+      "topic": "Hız birimleri ve yaklaşık WCA",
+      "issue": "Efe s.47 ve IFR s.50 yer hızı için KIAS ifadesi kullanır. IAS, TAS ve GS aynı değişken değildir. 5 kt için 3° yaklaşımı yaklaşık 100 kt düşük sapmalı örnektir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            43,
+            46,
+            47
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            50
+          ]
+        }
+      ],
+      "treatment": "Uçuş modelinde hava hızı ve rüzgâr vektörlerinden ground velocity üret; TAS/GS/IAS etiketlerini karıştırma. Örnekte TAS 100 kt ve crosswind 10 kt açıkça tanımlandı."
+    },
+    {
+      "id": "c05",
+      "topic": "Önleme açıları",
+      "issue": "10 NM içinde hata kadar, dışında 30°/45°, sabit 5–10° kala dönüş gibi tarifler örnek tekniklerdir. Uygun açı hız, mesafe, rüzgâr ve dönüş kabiliyetine bağlıdır.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            48,
+            49,
+            50,
+            51,
+            57
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            63,
+            64,
+            65
+          ]
+        }
+      ],
+      "treatment": "Puanlama gerçek hat yakalama ve yol korumaya dayanmalı; yalnız belirli bir başı ezberlediği için başarılı sayılmamalı."
+    },
+    {
+      "id": "c06",
+      "topic": "İki VOR örneğinde aritmetik",
+      "issue": "IFR s.69 aynı fiksi BUR R235 ile tanımlarken ibre ucunu 045° yazar; R235'in ters yönü 055° olmalıdır. Efe s.61 kuyruğu 235° kullanır.",
+      "citations": [
+        {
+          "source": "IFR",
+          "pdfPages": [
+            69
+          ]
+        },
+        {
+          "source": "EFE",
+          "pdfPages": [
+            60,
+            61
+          ]
+        }
+      ],
+      "treatment": "Örnekleri yeniden sayısal kur; 180° ters yönünü kodla doğrula."
+    },
+    {
+      "id": "c07",
+      "topic": "DME önden dönüş ve ark tekniği",
+      "issue": "IFR s.105 hem 150 ve altına 0,5 NM der hem GS/200 verir; 150/200 = 0,75 NM'dir. Ayrıca 325 radyal inbound ifadesiyle 055° dönüş örneği course/radyal karışıklığı içerir. 'Ark asla sürekli dönüşle uçulmaz' ifadesi aynı kaynakta FMS/A/P istisnasıyla çelişir.",
+      "citations": [
+        {
+          "source": "IFR",
+          "pdfPages": [
+            105,
+            106,
+            108
+          ]
+        },
+        {
+          "source": "EFE",
+          "pdfPages": [
+            70,
+            71,
+            76
+          ]
+        }
+      ],
+      "treatment": "GS/200 yalnız görevde tanımlı pratik tahmin olarak kullanılsın; örnek inbound course/radyal açık yazılsın. Poligon yöntemi tek geçerli yöntem olarak sunulmasın."
+    },
+    {
+      "id": "c08",
+      "topic": "Bekleme giriş sektörleri",
+      "issue": "Efe s.80'in inbound course etrafında gerçek varış başını sınıflandıran açıklaması IFR s.126'daki varış başına göre outbound course'u değerlendirme yöntemiyle aynı değildir. Literal uygulama doğrudan gelişleri yanlış sınıflandırabilir.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            80
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            126
+          ]
+        }
+      ],
+      "treatment": "Doğrulanmış geometrik algoritma kullan; örnek sağ patern inbound000: varış000 direkt,150 teardrop,240 paralel. Sektör sınırlarını tek doğru yanıtlı sorulardan çıkar."
+    },
+    {
+      "id": "c09",
+      "topic": "Bekleme zamanlaması ve sabit rüzgâr tarifleri",
+      "issue": "IFR s.120 FAA inbound hedefi ile ICAO yaklaşımını ayırır; Efe s.87 bunu daha genel bir kural gibi verir. 30 saniye minimum outbound, rüzgârın yarısı kadar fiks sonrası gecikme, tam üç kat düzeltme ve her fiksi ilk FROM'la tanıma evrensel kurallar değildir.",
+      "citations": [
+        {
+          "source": "IFR",
+          "pdfPages": [
+            120,
+            124,
+            125
+          ]
+        },
+        {
+          "source": "EFE",
+          "pdfPages": [
+            84,
+            86,
+            87,
+            88
+          ]
+        }
+      ],
+      "treatment": "Görevin kullanacağı süre ve model açık tanımlansın. Bu farklı kurallar bir mevzuat seti gibi birleştirilmesin. Fiks olayı fiks tipine bağlı olsun."
+    },
+    {
+      "id": "c10",
+      "topic": "Kavşak beklemesine giriş",
+      "issue": "Efe s.91–92 paraleli önermeme ve TO/FROM'a göre direkt/teardrop seçimini özel örnekten geneller. İstasyon dışındaki bir fikste giriş yine patern ve varış geometrisine bağlıdır.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            91,
+            92
+          ]
+        }
+      ],
+      "treatment": "Kavşak beklemelerinde genel bir paralel yasağı öğretme; fiksin üstünde VOR varmış gibi TO/FROM geçişi üretme."
+    },
+    {
+      "id": "c11",
+      "topic": "Gerçeklik sınırları",
+      "issue": "Konum kesişimlerinin 'kesin' olduğu, tek bir bearing hareketinin tam üstten geçişi kanıtladığı veya eğitim paternini tutmanın gerçek engel korumasını garanti ettiği varsayılmamalı.",
+      "citations": [
+        {
+          "source": "EFE",
+          "pdfPages": [
+            40,
+            60,
+            77
+          ]
+        },
+        {
+          "source": "IFR",
+          "pdfPages": [
+            46,
+            68
+          ]
+        }
+      ],
+      "treatment": "Modeli idealize eğitim olarak tanımla; gerçek ölçüm hatası, DME eğik mesafesi, sinyal kapsamı ve resmi korunan saha hesapları kapsam dışındaysa bunu kaynak/yardım panelinde kısa belirt."
+    }
+  ]
+}
