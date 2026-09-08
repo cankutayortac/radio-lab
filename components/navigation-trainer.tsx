@@ -117,6 +117,7 @@ export default function NavigationTrainer() {
     state = useRef(flight),
     manual = useRef(0);
   const activePointer = useRef<number | null>(null);
+  const briefingRequested = useRef(false);
   const [controlEpoch, setControlEpoch] = useState(0);
   const [mobileView, setMobileView] = useState('cockpit');
   const [pane, setPane] = useState('flight'),
@@ -135,6 +136,20 @@ export default function NavigationTrainer() {
     [quizzes, setQuizzes] = useState<QuizResult[]>([]),
     [completed, setCompleted] = useState<string[]>([]),
     [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    if (
+      briefingRequested.current &&
+      pane === 'flight' &&
+      mobileView === 'mission'
+    ) {
+      briefingRequested.current = false;
+      const heading = document.getElementById('mission-briefing');
+      heading?.focus({ preventScroll: true });
+      if (window.matchMedia('(max-width: 900px)').matches)
+        heading?.scrollIntoView({ block: 'start' });
+    }
+  }, [pane, mobileView, lesson, selected]);
   const commit = useCallback((next: Flight) => {
     state.current = next;
     setFlight(next);
@@ -393,6 +408,24 @@ export default function NavigationTrainer() {
     setQuizKey((k) => k + 1);
     go('quiz');
   };
+  const practiceMission = Object.entries(lessonForMission).find(
+    ([, lessonId]) => lessonId === lesson,
+  )?.[0];
+  const practiceLesson = () => {
+    // Opening a briefing never replaces an existing flight or its settings.
+    if (!mission && practiceMission) setSelected(practiceMission);
+    briefingRequested.current = !mission && !!practiceMission;
+    activePointer.current = null;
+    manual.current = 0;
+    setMobileView(!mission && practiceMission ? 'mission' : 'cockpit');
+    go('flight');
+  };
+  const openBriefing = () => {
+    briefingRequested.current = true;
+    activePointer.current = null;
+    manual.current = 0;
+    setMobileView('mission');
+  };
   const swap = (index: number) => {
     const keys = ['nav1', 'nav2', 'adf'] as const;
     const key = keys[index],
@@ -414,6 +447,9 @@ export default function NavigationTrainer() {
   const controlContext = `${pane}:${mobileView}:${controlEpoch}`;
   return (
     <div className="trainer-app">
+      <a className="skip-link" href="#workspace">
+        Çalışma alanına geç
+      </a>
       <header className="app-header">
         <div className="brand">
           <div className="brand-symbol">
@@ -423,43 +459,78 @@ export default function NavigationTrainer() {
             <strong>
               RADIO<span>LAB</span>
             </strong>
-            <small>ALETLİ UÇUŞ ATÖLYESİ</small>
+            <small>SEYRÜSEFER ATÖLYESİ</small>
           </div>
         </div>
-        <Tabs value={pane} onValueChange={(v) => go(String(v))}>
-          <TabsList className="main-tabs">
-            {panes.map((p) => (
-              <TabsTrigger value={p.id} key={p.id}>
-                <p.icon size={16} />
-                {p.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        <nav className="app-navigation" aria-label="Ana gezinme">
+          {panes.map((p) => (
+            <Button
+              variant="ghost"
+              key={p.id}
+              aria-current={pane === p.id ? 'page' : undefined}
+              onClick={() => go(p.id)}
+            >
+              <p.icon size={20} />
+              <span>{p.label}</span>
+            </Button>
+          ))}
+        </nav>
+        <div className="rail-progress">
+          <GraduationCap size={19} />
+          <div>
+            <strong>{completed.length} / 8</strong>
+            <span>Ders tamamlandı</span>
+          </div>
+          <div className="score-bar">
+            <span style={{ width: `${(completed.length / 8) * 100}%` }} />
+          </div>
+        </div>
         <div className="header-status">
           <span className={flight.running ? 'live-dot' : 'paused-dot'} />
-          {flight.running ? 'SİMÜLASYON AKTİF' : 'UÇUŞ DURAKLATILDI'}
+          {flight.running ? 'Uçuş devam ediyor' : 'Uçuş duraklatıldı'}
         </div>
+        <span className="rail-disclaimer">Yalnız eğitim amaçlıdır.</span>
       </header>
       <div className="session-bar">
-        <div>
-          <span className="eyebrow">ÇALIŞMA ALANI</span>
-          <b>{mission ? mission.title : 'İstanbul · Serbest uçuş'}</b>
-          <span
-            className="selected-settings"
-            aria-label="Seçili seyrüsefer ayarları"
-          >
-            NAV{flight.source} · CRS{' '}
-            <b>{fmt(flight.courses[flight.source - 1])}°</b>
-            <span>
-              HDG <b>{fmt(flight.bug)}°</b>
+        <div className="session-identity">
+          <div className="session-title">
+            <span className="eyebrow">
+              {pane === 'flight' ? 'UÇUŞ MASASI' : 'EĞİTİM MERKEZİ'}
             </span>
+            <h1>
+              {pane === 'flight'
+                ? mission
+                  ? mission.title
+                  : 'Serbest uçuş'
+                : panes.find((p) => p.id === pane)?.label}
+            </h1>
+          </div>
+          <span className="flight-state">
+            <i className={flight.running ? 'live-dot' : 'paused-dot'} />
+            {flight.running ? 'Uçuşta' : 'Duraklatıldı'}
           </span>
           {mission && (
             <span className="mode-chip">
               {flight.exam ? 'SINAV' : 'REHBERLİ'}
             </span>
           )}
+          <div className="session-subline">
+            <span>
+              {mission
+                ? `Görev ${mission.level.slice(0, 2)}`
+                : 'İstanbul eğitim sahası'}
+            </span>
+            <span
+              className="selected-settings"
+              aria-label="Seçili seyrüsefer ayarları"
+            >
+              NAV{flight.source} · CRS{' '}
+              <b>{fmt(flight.courses[flight.source - 1])}°</b>
+              <span>
+                HDG <b>{fmt(flight.bug)}°</b>
+              </span>
+            </span>
+          </div>
         </div>
         <div className="session-actions">
           <span className="clock">
@@ -476,8 +547,10 @@ export default function NavigationTrainer() {
             onChange={(v) => change({ rate: Number(v) })}
           />
           <Button
+            className="flight-toggle"
             variant={flight.running ? 'secondary' : 'default'}
             onClick={() => {
+              if (pane !== 'flight') setMobileView('cockpit');
               go('flight');
               change({ running: !state.current.running });
               setNotice('');
@@ -489,7 +562,7 @@ export default function NavigationTrainer() {
           {mission ? (
             <Button variant="outline" onClick={() => finish(state.current)}>
               <Flag />
-              Bitir & değerlendir
+              Uçuşu bitir
             </Button>
           ) : (
             <Button
@@ -539,12 +612,14 @@ export default function NavigationTrainer() {
             </TabsTrigger>
             <TabsTrigger value="mission">
               <Flag size={17} />
-              Görev
+              Görevler
             </TabsTrigger>
           </TabsList>
         </Tabs>
       )}
       <main
+        id="workspace"
+        tabIndex={-1}
         className="workspace"
         data-pane={pane}
         data-mobile-view={mobileView}
@@ -557,9 +632,13 @@ export default function NavigationTrainer() {
                 ? 'Adım adım öğren.'
                 : pane === 'quiz'
                   ? 'Bilgiyi uygulamaya çevir.'
-                  : 'Bir görev seç, uç, geliş.'}
+                  : 'Uçuş görevleri'}
             </h2>
-            <p>8 ders · 7 uçuş görevi · 24 soru</p>
+            <p>
+              {pane === 'learn'
+                ? 'Öğren → test et → kokpitte uygula'
+                : 'Görevi incele, ayarlarını yap, uç.'}
+            </p>
           </div>
           <div className="sidebar-progress">
             <span>Okunan dersler</span>
@@ -587,7 +666,8 @@ export default function NavigationTrainer() {
                     <div>
                       <b>{l.title}</b>
                       <small>
-                        {l.difficulty} · {l.durationMinutes} dk
+                        Ders {String(l.order).padStart(2, '0')} ·{' '}
+                        {l.durationMinutes} dk
                       </small>
                     </div>
                     <ArrowRight size={15} />
@@ -607,6 +687,7 @@ export default function NavigationTrainer() {
                     key={m.id}
                     className={`mission-link ${brief.id === m.id ? 'active' : ''}`}
                     onClick={() => {
+                      briefingRequested.current = true;
                       setSelected(m.id);
                       setMobileView('mission');
                       go('flight');
@@ -622,8 +703,8 @@ export default function NavigationTrainer() {
                     <div>
                       <b>{m.title}</b>
                       <small>
-                        {m.level.split(' · ')[1]} · {Math.ceil(m.limit / 60)} dk
-                        sınırı
+                        Görev {m.level.slice(0, 2)} · {Math.ceil(m.limit / 60)}{' '}
+                        dk sınırı
                       </small>
                     </div>
                     <ArrowRight size={15} />
@@ -651,6 +732,59 @@ export default function NavigationTrainer() {
         <section className="main-stage">
           {pane === 'flight' ? (
             <>
+              <div className="flight-focus panel">
+                <div className="section-heading">
+                  <span className="eyebrow">
+                    {mission ? 'SIRADAKİ ADIM' : 'KOKPİTE HOŞ GELDİN'}
+                  </span>
+                  <span className="tag">
+                    {mission ? `Görev ${mission.level.slice(0, 2)}` : 'SERBEST'}
+                  </span>
+                </div>
+                <h2>
+                  {mission
+                    ? flight.exam
+                      ? 'Brifingi izle, göstergelerle uç.'
+                      : !sample?.setup
+                        ? 'Önce radyo ve CRS ayarları.'
+                        : sample.good
+                          ? 'Hedefte kal, takibi sürdür.'
+                          : 'Hattı yakala, rüzgârı karşıla.'
+                    : 'Bir rota seç. Göstergelerle uç.'}
+                </h2>
+                <p>
+                  {mission
+                    ? flight.exam
+                      ? 'Anlık ipuçları kapalı. Sonuçların uçuş sonunda gösterilecek.'
+                      : !sample?.setup
+                        ? 'Standby frekansını gir, ↔ ile aktif yap. CDI kaynağını ve course’u brifinge göre ayarla.'
+                        : 'CRS istenen yolu gösterir. Uçağın başını HDG ile kumanda et.'
+                    : 'HDG uçağın başını, CRS göstergedeki seçili yolu ayarlar. Rehberli çalışmak için bir görev aç.'}
+                </p>
+                {mission && !flight.exam && (
+                  <div className="focus-progress">
+                    <div className="score-bar">
+                      <span
+                        style={{
+                          width: `${Math.min(100, (flight.metrics.stable / mission.duration) * 100)}%`,
+                        }}
+                      />
+                    </div>
+                    <span>
+                      Kararlı takip{' '}
+                      <b>
+                        {Math.floor(flight.metrics.stable)} / {mission.duration}{' '}
+                        sn
+                      </b>
+                    </span>
+                  </div>
+                )}
+                <Button variant="outline" onClick={openBriefing}>
+                  <Flag size={16} />
+                  {mission ? 'Görev brifingini aç' : 'Görev seç'}
+                  <ArrowRight size={16} />
+                </Button>
+              </div>
               <div className="map-panel">
                 <div className="panel-toolbar">
                   <div>
@@ -743,7 +877,9 @@ export default function NavigationTrainer() {
                   </span>
                   <span className="tag">{brief.level}</span>
                 </div>
-                <h1>{brief.title}</h1>
+                <h2 id="mission-briefing" tabIndex={-1}>
+                  {brief.title}
+                </h2>
                 <p>{brief.brief}</p>
                 {brief.kind === 'fix' && (
                   <p className="fix-coordinates">
@@ -861,7 +997,7 @@ export default function NavigationTrainer() {
               <details className="panel simulation-settings">
                 <summary>
                   <WindIcon size={17} />
-                  Simülasyon & kumanda
+                  Rüzgâr ve uçuş ayarları
                 </summary>
                 <p>
                   HDG SEL seçtiğin manyetik başa yatışla döner; CRS yalnız
@@ -924,16 +1060,16 @@ export default function NavigationTrainer() {
                 setCompleted((a) => (a.includes(lesson) ? a : [...a, lesson]))
               }
               onQuiz={() => startQuiz(lesson)}
-              onFlight={() => go('flight')}
+              onFlight={practiceLesson}
+              flightLabel={
+                mission
+                  ? 'Mevcut uçuşa dön'
+                  : practiceMission
+                    ? 'İlgili görevi incele'
+                    : 'Serbest uçuşa dön'
+              }
             />
-          ) : pane === 'quiz' ? (
-            <KnowledgeTest
-              key={`${quizTopic}-${quizKey}`}
-              topic={quizTopic}
-              onFinish={(r) => setQuizzes((a) => [r, ...a].slice(0, 50))}
-              onLesson={showLesson}
-            />
-          ) : pane === 'results' ? (
+          ) : pane === 'quiz' ? null : pane === 'results' ? (
             <Debrief
               results={results}
               quizzes={quizzes}
@@ -948,6 +1084,16 @@ export default function NavigationTrainer() {
           ) : (
             <References />
           )}
+          {/* Keep answers when a learner visits the lesson or cockpit. Only
+              starting a new test changes the key and clears this session. */}
+          <div hidden={pane !== 'quiz'} className="quiz-stage">
+            <KnowledgeTest
+              key={`${quizTopic}-${quizKey}`}
+              topic={quizTopic}
+              onFinish={(r) => setQuizzes((a) => [r, ...a].slice(0, 50))}
+              onLesson={showLesson}
+            />
+          </div>
         </section>
         <aside className="instrument-column">
           <div className="instrument-panel">
@@ -956,7 +1102,10 @@ export default function NavigationTrainer() {
                 <RadioTower size={17} />
                 <b>HSI · Radyo seyrüsefer</b>
               </div>
-              <span className="eyebrow">HDG SEL</span>
+              <span className="instrument-badge">
+                VOR{flight.source} ·{' '}
+                {nav?.valid ? nav.station.id : 'SİNYAL YOK'}
+              </span>
             </div>
             <TrainerHSI
               hideGuidance={!!mission && flight.exam}
@@ -1127,7 +1276,7 @@ export default function NavigationTrainer() {
         </aside>
       </main>
       <footer className="app-footer">
-        <span>RADIO LAB / Eğitim sürümü 7</span>
+        <span>RADIO LAB · Uçuş masası / 11</span>
         <span>Model: 120 KTAS · 4.200 ft sabit · 6°E senaryo varyasyonu</span>
         <button onClick={() => go('sources')}>
           Kaynaklar ve sınırlamalar <ArrowRight size={14} />

@@ -177,6 +177,7 @@ test('Slider uses dimension-independent center alignment after hide/show', () =>
 });
 for (const reason of [
   'blur',
+  'resize',
   'visibilitychange',
   'pointercancel',
   'touchcancel',
@@ -201,7 +202,7 @@ for (const reason of [
         assert.fail('active drag rejected');
       },
     });
-    if (reason === 'blur') h.windowEvent(reason);
+    if (reason === 'blur' || reason === 'resize') h.windowEvent(reason);
     else {
       h.document.hidden = true;
       h.documentEvent(reason);
@@ -239,9 +240,24 @@ const trainer = ts.createSourceFile(
   ts.ScriptKind.TSX,
 );
 const releases = [];
+const workspaceCallbacks = {};
+const quizNodes = [];
 let viewChange;
 let suspendFlight, bankBlur;
 function inspect(node) {
+  if (
+    ts.isVariableDeclaration(node) &&
+    ['go', 'practiceLesson', 'openBriefing'].includes(
+      node.name.getText(trainer),
+    )
+  )
+    workspaceCallbacks[node.name.getText(trainer)] =
+      node.initializer.getText(trainer);
+  if (
+    ts.isJsxSelfClosingElement(node) &&
+    node.tagName.getText(trainer) === 'KnowledgeTest'
+  )
+    quizNodes.push(node);
   if (
     ts.isVariableDeclaration(node) &&
     node.name.getText(trainer) === 'suspend'
@@ -333,4 +349,110 @@ test('Only releasing an actual manual turn synchronizes HDG to the aircraft', ()
   context.manual.current = -1;
   release();
   assert.equal(state.current.bug, 342);
+});
+
+function workspaceHarness(mission, practiceMission) {
+  const flight = {
+    missionId: mission?.id ?? null,
+    exam: !!mission?.exam,
+    running: false,
+    bug: 350,
+    courses: [90, 275],
+    nav1: 112.5,
+    nav2: 108.8,
+    metrics: { elapsed: 83, stable: 15 },
+  };
+  const state = { current: structuredClone(flight) };
+  const calls = {};
+  const context = {
+    state,
+    mission,
+    practiceMission,
+    activePointer: { current: 7 },
+    manual: { current: 1 },
+    briefingRequested: { current: false },
+    change: (patch) => Object.assign(state.current, patch),
+    setPane: (value) => {
+      calls.pane = value;
+    },
+    setSelected: (value) => {
+      calls.selected = value;
+    },
+    setMobileView: (value) => {
+      calls.view = value;
+    },
+  };
+  for (const name of ['go', 'practiceLesson', 'openBriefing']) {
+    const code = ts.transpileModule(
+      `(() => { const callback = ${workspaceCallbacks[name]}; return callback; })();`,
+      { compilerOptions: { target: ts.ScriptTarget.ES2022 } },
+    ).outputText;
+    context[name] = vm.runInNewContext(code, context);
+  }
+  return { context, calls, flight, state };
+}
+test('Lesson practice opens the matching briefing without loading or retuning a flight', () => {
+  const h = workspaceHarness(null, 'crosswind');
+  h.context.practiceLesson();
+  assert.deepEqual(h.calls, {
+    selected: 'crosswind',
+    view: 'mission',
+    pane: 'flight',
+  });
+  assert.deepEqual(h.state.current, h.flight);
+  assert.equal(h.context.briefingRequested.current, true);
+  assert.equal(h.context.manual.current, 0);
+});
+for (const exam of [false, true]) {
+  test(`Lesson return preserves an existing ${exam ? 'exam' : 'guided'} crosswind flight`, () => {
+    const h = workspaceHarness({ id: 'crosswind', exam }, 'arc');
+    h.context.practiceLesson();
+    assert.deepEqual(h.calls, { view: 'cockpit', pane: 'flight' });
+    assert.deepEqual(h.state.current, h.flight);
+    assert.equal(h.context.briefingRequested.current, false);
+  });
+}
+test('Theory-only lesson returns to free flight without resetting it', () => {
+  const h = workspaceHarness(null, undefined);
+  h.context.practiceLesson();
+  assert.deepEqual(h.calls, { view: 'cockpit', pane: 'flight' });
+  assert.deepEqual(h.state.current, h.flight);
+});
+test('Opening briefing cancels manual input without changing radios, course, heading or progress', () => {
+  const h = workspaceHarness({ id: 'crosswind', exam: true }, 'crosswind');
+  h.state.current.running = true;
+  h.context.openBriefing();
+  assert.deepEqual(h.calls, { view: 'mission' });
+  assert.deepEqual(h.state.current, { ...h.flight, running: true });
+  assert.equal(h.context.manual.current, 0);
+  assert.equal(h.context.activePointer.current, null);
+});
+test('Main navigation pauses and resumes the same flight without resetting its values', () => {
+  const h = workspaceHarness({ id: 'crosswind' }, 'crosswind');
+  h.state.current.running = true;
+  h.context.go('learn');
+  assert.deepEqual(h.state.current, h.flight);
+  h.context.go('flight');
+  assert.deepEqual(h.state.current, h.flight);
+});
+test('Quiz remains mounted outside pane conditionals, hidden and keyed only by explicit test session', () => {
+  assert.equal(quizNodes.length, 1);
+  const quiz = quizNodes[0];
+  const wrapper = quiz.parent;
+  assert.equal(wrapper.openingElement.tagName.getText(trainer), 'div');
+  assert.ok(
+    wrapper.openingElement.attributes.properties.some(
+      (a) =>
+        a.name?.getText(trainer) === 'hidden' &&
+        a.initializer.expression.getText(trainer) === "pane !== 'quiz'",
+    ),
+  );
+  const key = quiz.attributes.properties
+    .find((a) => a.name?.getText(trainer) === 'key')
+    .initializer.expression.getText(trainer);
+  assert.match(key, /quizTopic/);
+  assert.match(key, /quizKey/);
+  assert.doesNotMatch(key, /pane|mobileView/);
+  for (let parent = wrapper.parent; parent; parent = parent.parent)
+    assert.equal(ts.isConditionalExpression(parent), false);
 });

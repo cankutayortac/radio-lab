@@ -48,7 +48,11 @@ export function StableSlider({
     const end = () => {
       active.current = false;
     };
+    const resize = () => {
+      if (active.current) cancel();
+    };
     window.addEventListener('blur', cancel);
+    window.addEventListener('resize', resize);
     document.addEventListener('visibilitychange', hidden);
     document.addEventListener('pointercancel', cancel);
     document.addEventListener('touchcancel', cancel);
@@ -57,6 +61,7 @@ export function StableSlider({
     return () => {
       active.current = false;
       window.removeEventListener('blur', cancel);
+      window.removeEventListener('resize', resize);
       document.removeEventListener('visibilitychange', hidden);
       document.removeEventListener('pointercancel', cancel);
       document.removeEventListener('touchcancel', cancel);
@@ -123,7 +128,7 @@ export function Choice({
           {options.find((o) => o.value === value)?.label ?? value}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="trainer-choice-menu">
         {options.map((o) => (
           <SelectItem key={o.value} value={o.value}>
             {o.label}

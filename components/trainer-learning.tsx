@@ -35,12 +35,14 @@ export function Lesson({
   onComplete,
   onQuiz,
   onFlight,
+  flightLabel = 'Uçuşa geç',
 }: {
   id: string;
   completed: boolean;
   onComplete: () => void;
   onQuiz: () => void;
   onFlight: () => void;
+  flightLabel?: string;
 }) {
   const lesson =
     curriculum.lessons.find((l) => l.id === id) ?? curriculum.lessons[0];
@@ -96,7 +98,7 @@ export function Lesson({
           Bilgimi sına <ArrowRight />
         </Button>
         <Button variant="ghost" onClick={onFlight}>
-          Uçuşa geç
+          {flightLabel}
         </Button>
       </div>
       {lesson.id === 'holding-entry' && (

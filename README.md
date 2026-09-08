@@ -9,7 +9,17 @@ VOR, NDB ve DME çalışmaları için Türkçe, tarayıcı tabanlı yatay seyrü
 - Aktif/standby frekans ayarı, mors kimliği, course/heading sliderları.
 - Küresel yatay geometri, rüzgâr, koordineli dönüş ve DME eğik mesafesi.
 - Rehberli/sınav modları; uçuş geçmişi yalnız kullanılan tarayıcıda saklanır.
-- Dar ekranlarda Kokpit / Harita / Görev geçişi ve dokunmatik dönüş kumandaları.
+- Tüm ekranlarda Kokpit / Harita / Görevler çalışma alanları; bilgisayarda HSI ve harita yan yana.
+- Telefon ve tablette alt gezinme, büyük dokunma alanları ve kesintiye dayanıklı sliderlar.
+
+## Yeni uçuş masası
+
+1. **Görevler** sekmesinden bir brifing seçin; ders ve görev numaraları birbirinden ayrıdır.
+2. Görevi yükleyin. Standby frekanslarını girip ↔ ile aktif yapın; CDI kaynağını ve CRS değerini ayarlayın.
+3. Uçuşu başlatın. HDG uçağın başını kumanda eder; CRS yalnızca seçili yolu değiştirir.
+4. Uçuşu bitirerek değerlendirmeyi açın. Derslerden ilgili görev brifingine geçebilirsiniz; devam eden bir uçuş bu geçişte sıfırlanmaz.
+
+Bilgi testi yanıtları ders/kokpit sekmelerine gidip dönünce korunur; yeni test başlatmak veya sayfayı yenilemek mevcut test oturumunu sıfırlar. Tamamlanmış sonuçlar tarayıcı kaydında tutulur. Ekran boyutu değişirken sürükleme iptal edilir; seçili course ve heading kendiliğinden eşlenmez.
 
 ## Yerelde çalıştırma
 
