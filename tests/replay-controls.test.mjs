@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { memoryDatabase } from './helpers/memory-idb.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
@@ -281,91 +282,6 @@ test('Completed result keys reset history and replay; no unfinished exam buffer 
   assert.match(source, /captureFrame\(buffer, \{ \.\.\.f, running: false \}/);
 });
 
-// A request-queue adapter for the IndexedDB transaction used by the real store.
-// It exercises insertion, pruning, corruption and reads without browser storage.
-function memoryDatabase() {
-  const rows = new Map();
-  let initialized = false;
-  const db = {
-    close() {},
-    createObjectStore: () => ({ createIndex() {} }),
-    transaction() {
-      let pending = 0;
-      const tx = { error: null };
-      function request(run) {
-        const req = {};
-        pending++;
-        queueMicrotask(() => {
-          try {
-            run(req);
-          } catch (error) {
-            tx.error = error;
-            tx.onabort?.();
-          }
-          pending--;
-          queueMicrotask(() => {
-            if (!pending && !tx.error) tx.oncomplete?.();
-          });
-        });
-        return req;
-      }
-      tx.objectStore = () => ({
-        put: (record) =>
-          request((req) => {
-            rows.set(record.id, structuredClone(record));
-            req.onsuccess?.();
-          }),
-        delete: (id) =>
-          request((req) => {
-            rows.delete(id);
-            req.onsuccess?.();
-          }),
-        get: (id) =>
-          request((req) => {
-            req.result = structuredClone(rows.get(id));
-            req.onsuccess?.();
-          }),
-        index: (key) => ({
-          openKeyCursor() {
-            let entries,
-              position = 0;
-            const req = request(function next(out) {
-              entries ??= [...rows.values()].sort((a, b) => b[key] - a[key]);
-              const row = entries[position++];
-              out.result = row
-                ? {
-                    key: row[key],
-                    primaryKey: row.id,
-                    continue: () => request(() => next(out)),
-                  }
-                : null;
-              out.onsuccess?.();
-            });
-            return req;
-          },
-        }),
-      });
-      return tx;
-    },
-  };
-  return {
-    rows,
-    indexedDB: {
-      open() {
-        const req = {};
-        queueMicrotask(() => {
-          req.result = db;
-          if (!initialized) {
-            initialized = true;
-            req.onupgradeneeded?.();
-          }
-          req.onsuccess?.();
-        });
-        return req;
-      },
-    },
-  };
-}
 test('IndexedDB stores only latest 20 by insertion order even if device clock goes backward', async () => {
   const adapter = memoryDatabase();
   const previous = globalThis.indexedDB;

@@ -64,6 +64,8 @@ import {
 import curriculum from '@/lib/curriculum.json';
 import {
   captureFrame,
+  explainFrame,
+  snapshot,
   newRecording,
   finishRecording,
   summarizeRecording,
@@ -71,7 +73,16 @@ import {
   type RecordingBuffer,
   type FlightRecording,
 } from '@/lib/flight-review';
-import { saveRecording, RECORDING_LIMIT } from '@/lib/replay-store';
+import {
+  saveRecording,
+  RECORDING_LIMIT,
+  saveDraft,
+  listDrafts,
+  retireDraft,
+  finalizeDraft,
+  savedResults,
+} from '@/lib/replay-store';
+import { makeDraft, type FlightDraft } from '@/lib/flight-session';
 
 type Flight = Setup & {
   ac: Aircraft;
@@ -129,6 +140,20 @@ export default function NavigationTrainer() {
   const activePointer = useRef<number | null>(null);
   const briefingRequested = useRef(false);
   const recording = useRef<RecordingBuffer | null>(null);
+  const sessionInfo = useRef<{
+    id: string;
+    date: string;
+    revision: number;
+  } | null>(null);
+  const restoring = useRef(false);
+  const abandoned = useRef(false);
+  const lastCheckpoint = useRef('');
+  const [ownershipLost, setOwnershipLost] = useState(false);
+  const finishing = useRef(false);
+  const [finalizing, setFinalizing] = useState(false);
+  const [drafts, setDrafts] = useState<FlightDraft[]>([]);
+  const [recovering, setRecovering] = useState(false);
+  const [draftStatus, setDraftStatus] = useState('');
   const [sessionRecordings, setSessionRecordings] = useState<
     ReadonlyMap<string, FlightRecording>
   >(new Map());
@@ -173,45 +198,205 @@ export default function NavigationTrainer() {
     (patch: Partial<Flight>) => commit({ ...state.current, ...patch }),
     [commit],
   );
+  const checkpoint = useCallback(() => {
+    const f = state.current,
+      info = sessionInfo.current,
+      buffer = recording.current;
+    if (
+      !info ||
+      !buffer ||
+      !f.missionId ||
+      f.metrics.elapsed <= 0 ||
+      f.metrics.done
+    )
+      return;
+    const fingerprint = JSON.stringify([
+      info.id,
+      snapshot(f, manual.current),
+      standby,
+    ]);
+    if (lastCheckpoint.current === fingerprint) return;
+    captureFrame(
+      buffer,
+      f,
+      manual.current,
+      buffer.frames.at(-1)?.t !== f.metrics.elapsed,
+    );
+    const draft = makeDraft(
+      info.id,
+      info.date,
+      f,
+      buffer,
+      standby,
+      ++info.revision,
+    );
+    void saveDraft(draft)
+      .then((saved) => {
+        if (sessionInfo.current?.id !== info.id) return;
+        if (saved) {
+          if (info.revision === draft.revision)
+            lastCheckpoint.current = fingerprint;
+          if (info.revision === draft.revision)
+            setDraftStatus(
+              `Son ara kayıt ${new Date(draft.savedAt).toLocaleTimeString('tr-TR')} · bu tarayıcıda`,
+            );
+        } else {
+          abandoned.current = true;
+          setOwnershipLost(true);
+          sessionInfo.current = null;
+          change({ running: false });
+          setDraftStatus(
+            'Bu uçuş başka sekmede devralındı veya kaldırıldı; bu kopya duraklatıldı.',
+          );
+        }
+      })
+      .catch(() => {
+        if (sessionInfo.current?.id === info.id)
+          setDraftStatus(
+            'Ara kayıt yazılamıyor; sayfayı kapatmadan uçuşu bitir.',
+          );
+      });
+  }, [standby, change]);
+  useEffect(() => {
+    let cancelled = false;
+    void listDrafts()
+      .then((items) => {
+        if (!cancelled) setDrafts(items);
+      })
+      .catch(() => {
+        if (!cancelled) setDraftStatus('Ara kayıt deposu kullanılamıyor.');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  useEffect(() => {
+    const timer = setInterval(checkpoint, 2000);
+    const flush = () => checkpoint();
+    const visibility = () => {
+      if (document.hidden) checkpoint();
+    };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', visibility);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', visibility);
+    };
+  }, [checkpoint]);
+  useEffect(() => {
+    if (flight.missionId && !flight.running && flight.metrics.elapsed > 0)
+      checkpoint();
+  }, [flight.missionId, flight.running, flight.metrics.elapsed, checkpoint]);
   const finish = useCallback(
     (f: Flight) => {
       const m = MISSIONS.find((x) => x.id === f.missionId);
-      if (!m || state.current.missionId !== m.id) return;
-      if (m) {
-        const result = grade(m, f.metrics, f.exam);
-        const buffer = recording.current;
-        if (buffer && buffer.mission === m.id) {
-          captureFrame(buffer, { ...f, running: false }, manual.current, true);
-          const replay = finishRecording(buffer, result);
-          result.review = summarizeRecording(replay, result);
+      if (
+        !m ||
+        abandoned.current ||
+        finishing.current ||
+        state.current.missionId !== m.id
+      )
+        return;
+      finishing.current = true;
+      setFinalizing(true);
+      const result = {
+        ...grade(m, f.metrics, f.exam),
+        ...(sessionInfo.current ? { id: sessionInfo.current.id } : {}),
+      };
+      const buffer = recording.current;
+      let replay: FlightRecording | null = null;
+      if (buffer && buffer.mission === m.id) {
+        captureFrame(buffer, { ...f, running: false }, manual.current, true);
+        replay = finishRecording(buffer, result);
+        result.review = summarizeRecording(replay, result);
+      }
+      recording.current = null;
+      sessionInfo.current = null;
+      activePointer.current = null;
+      manual.current = 0;
+      commit({ ...f, running: false, missionId: null });
+      setNotice('Uçuş sona erdi; sonuç kaydediliyor…');
+      const publishResult = () => {
+        if (replay) {
+          const savedReplay = replay;
           setSessionRecordings((previous) => {
             const next = new Map(previous);
-            next.set(result.id, replay);
+            next.set(result.id, savedReplay);
             while (next.size > RECORDING_LIMIT)
               next.delete(next.keys().next().value!);
             return next;
           });
-          void saveRecording(replay).catch(() =>
+          void saveRecording(savedReplay).catch(() =>
             setStorageWarning((previous) =>
               [
                 previous,
-                'Ayrıntılı uçuş tekrarı bu oturumda kullanılabilir, fakat tarayıcıya kaydedilemedi.',
+                'Ayrıntılı tekrar bu oturumda kullanılabilir, fakat kalıcı kaydı doğrulanamadı.',
               ]
                 .filter(Boolean)
                 .join(' '),
             ),
           );
         }
-        recording.current = null;
-        setResults((r) => [result, ...r].slice(0, 50));
+        setResults((previous) =>
+          [result, ...previous.filter((r) => r.id !== result.id)].slice(0, 50),
+        );
+        setDrafts((items) => items.filter((d) => d.id !== result.id));
+        setDraftStatus('');
+        setNotice(
+          result.passed
+            ? 'Görev kendiliğinden tamamlandı. Uçuş kaydı ve değerlendirmen hazır.'
+            : 'Uçuş sona erdi. Kayıt ve değerlendirmen hazır.',
+        );
         setPane('results');
-      }
-      activePointer.current = null;
-      manual.current = 0;
-      commit({ ...f, running: false, missionId: null });
+      };
+      void finalizeDraft(result)
+        .then((accepted) => {
+          if (accepted) publishResult();
+          else
+            setNotice(
+              'Bu uçuş başka sekmede devralınmış veya sonlandırılmış. Bu sekme önceki kaydı değiştirmedi.',
+            );
+        })
+        .catch(() => {
+          setStorageWarning(
+            'Kalıcı sonuç kaydı doğrulanamadı; sonucu bu oturumda inceleyebilirsin.',
+          );
+          publishResult();
+        })
+        .finally(() => {
+          finishing.current = false;
+          setFinalizing(false);
+        });
     },
     [commit],
   );
+  useEffect(() => {
+    if (!loaded) return;
+    let cancelled = false;
+    void savedResults()
+      .then((items) => {
+        if (cancelled) return;
+        setResults((previous) =>
+          [
+            ...previous,
+            ...items.filter((item) => !previous.some((r) => r.id === item.id)),
+          ]
+            .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+            .slice(0, 50)
+            .map((r) => ({
+              ...r,
+              review: validReviewSummary(r.review) ? r.review : undefined,
+            })),
+        );
+      })
+      .catch(() => {
+        /* The existing local summary log remains available. */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loaded]);
   useEffect(() => {
     const hydrate = setTimeout(() => {
       try {
@@ -342,6 +527,88 @@ export default function NavigationTrainer() {
       window.removeEventListener('blur', suspend);
     };
   }, [commit, change, finish]);
+  const loadMission = useCallback(
+    (id = selected) => {
+      if (restoring.current || finishing.current) return;
+      const current = state.current;
+      if (
+        !abandoned.current &&
+        current.missionId &&
+        (current.running || current.metrics.elapsed > 0)
+      ) {
+        setNotice('Yeni görevden önce devam eden uçuşu bitir.');
+        return;
+      }
+      if (!abandoned.current && current.missionId === id) return;
+      abandoned.current = false;
+      setOwnershipLost(false);
+      lastCheckpoint.current = '';
+      const m = MISSIONS.find((x) => x.id === id) ?? MISSIONS[0];
+      manual.current = 0;
+      activePointer.current = null;
+      setControlEpoch((n) => n + 1);
+      const ac = missionSpawn(m);
+      const prepared: Flight = {
+        ...initial(),
+        ac,
+        bug: ac.heading,
+        wind: m.wind,
+        nav1: 110,
+        nav2: 110.5,
+        courses: [335, 90],
+        missionId: m.id,
+        exam,
+        rate: 1,
+        trail: [ac],
+      };
+      sessionInfo.current = {
+        id: crypto.randomUUID(),
+        date: new Date().toISOString(),
+        revision: 0,
+      };
+      setDraftStatus('Uçuş başlayınca ara kayıt alınacak.');
+      recording.current = newRecording(prepared);
+      commit(prepared);
+      setSelected(m.id);
+      setMobileView('cockpit');
+      setStandby(['112.50', '108.80', '396.0']);
+      setRecenter((r) => r + 1);
+      setPane('flight');
+      setNotice(
+        'Görev hazır. Frekansları ve course’u ayarla, ardından Görevi başlat. Koşullar sağlandığında kendiliğinden tamamlanır.',
+      );
+    },
+    [selected, exam, commit],
+  );
+  const toggleFlight = useCallback(() => {
+    if (restoring.current || finishing.current) return;
+    if (abandoned.current) {
+      setNotice(
+        'Bu uçuş başka sekmede devralındı. O sekmeyi kullan veya yeni bir görev seç.',
+      );
+      return;
+    }
+    if (
+      !state.current.missionId &&
+      pane === 'flight' &&
+      mobileView === 'mission'
+    ) {
+      loadMission();
+      return;
+    }
+    if (state.current.missionId && !sessionInfo.current)
+      sessionInfo.current = {
+        id: crypto.randomUUID(),
+        date: new Date().toISOString(),
+        revision: 0,
+      };
+    activePointer.current = null;
+    manual.current = 0;
+    if (pane !== 'flight') setMobileView('cockpit');
+    setPane('flight');
+    change({ running: !state.current.running });
+    setNotice('');
+  }, [pane, mobileView, loadMission, change]);
   useEffect(() => {
     const release = () => {
       activePointer.current = null;
@@ -365,7 +632,7 @@ export default function NavigationTrainer() {
       }
       if (e.code === 'Space') {
         e.preventDefault();
-        change({ running: !state.current.running });
+        toggleFlight();
       }
     };
     const up = (e: KeyboardEvent) => {
@@ -377,7 +644,7 @@ export default function NavigationTrainer() {
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
     };
-  }, [change, pane]);
+  }, [change, pane, toggleFlight]);
   const mission = MISSIONS.find((m) => m.id === flight.missionId) ?? null,
     preview = MISSIONS.find((m) => m.id === selected) ?? MISSIONS[0],
     brief = mission ?? preview;
@@ -387,41 +654,21 @@ export default function NavigationTrainer() {
   const receptions = { NAV1: nav1, NAV2: nav2, ADF: adf, OFF: null },
     nav = flight.source === 1 ? nav1 : nav2;
   const sample = mission ? measure(mission, flight.ac, flight) : null;
+  const explanation =
+    mission && !flight.exam ? explainFrame(mission, snapshot(flight)) : null;
+  const missionLocked =
+    !!mission &&
+    !ownershipLost &&
+    (flight.running || flight.metrics.elapsed > 0);
+  const recoverableDrafts = drafts.filter(
+    (d) => !results.some((r) => r.id === d.id),
+  );
+  const preparing = !mission && pane === 'flight' && mobileView === 'mission';
   const go = (id: string) => {
     activePointer.current = null;
     if (id !== 'flight') change({ running: false });
     manual.current = 0;
     setPane(id);
-  };
-  const loadMission = (id = selected) => {
-    const m = MISSIONS.find((x) => x.id === id) ?? MISSIONS[0];
-    manual.current = 0;
-    activePointer.current = null;
-    setControlEpoch((n) => n + 1);
-    const ac = missionSpawn(m);
-    const prepared: Flight = {
-      ...initial(),
-      ac,
-      bug: ac.heading,
-      wind: m.wind,
-      nav1: 110,
-      nav2: 110.5,
-      courses: [335, 90],
-      missionId: m.id,
-      exam,
-      rate: 1,
-      trail: [ac],
-    };
-    recording.current = newRecording(prepared);
-    commit(prepared);
-    setSelected(m.id);
-    setMobileView('cockpit');
-    setStandby(['112.50', '108.80', '396.0']);
-    setRecenter((r) => r + 1);
-    setPane('flight');
-    setNotice(
-      'Görev hazır. Frekansları ve course’u ayarla, ardından uçuşu başlat.',
-    );
   };
   const setCourse = (value: number, source = flight.source) => {
     if (!Number.isFinite(value)) return;
@@ -437,6 +684,19 @@ export default function NavigationTrainer() {
     change({ wind, ac });
   };
   const resetFree = () => {
+    if (
+      restoring.current ||
+      finishing.current ||
+      (!abandoned.current &&
+        state.current.missionId &&
+        state.current.metrics.elapsed > 0)
+    )
+      return;
+    sessionInfo.current = null;
+    abandoned.current = false;
+    setOwnershipLost(false);
+    lastCheckpoint.current = '';
+    setDraftStatus('');
     recording.current = null;
     setControlEpoch((n) => n + 1);
     activePointer.current = null;
@@ -448,6 +708,68 @@ export default function NavigationTrainer() {
     setNotice(
       'Serbest uçuş sıfırlandı. Duraklatılmış haritaya tıklayarak uçağı yerleştirebilirsin.',
     );
+  };
+  const recoverDraft = async (id: string) => {
+    if (
+      restoring.current ||
+      finishing.current ||
+      state.current.missionId ||
+      state.current.running
+    )
+      return;
+    const original = state.current;
+    restoring.current = true;
+    setRecovering(true);
+    try {
+      const replacement = {
+        id: crypto.randomUUID(),
+        date: new Date().toISOString(),
+      };
+      const draft = await retireDraft(id, 'resumed', replacement);
+      if (!draft) {
+        setNotice('Bu ara kayıt başka sekmede devralınmış veya kaldırılmış.');
+        return;
+      }
+      if (state.current !== original) {
+        setDrafts(await listDrafts());
+        setNotice('Uçuş ayarları değişti; ara kayıt listede korundu.');
+        return;
+      }
+      sessionInfo.current = { ...replacement, revision: 0 };
+      recording.current = draft.recording;
+      manual.current = 0;
+      activePointer.current = null;
+      commit({
+        ...draft.flight,
+        brg1: draft.flight.brg1 as BearingSource,
+        brg2: draft.flight.brg2 as BearingSource,
+      });
+      setStandby(draft.standby);
+      setSelected(draft.flight.missionId!);
+      setExam(draft.flight.exam);
+      setPane('flight');
+      setMobileView('cockpit');
+      setControlEpoch((n) => n + 1);
+      setRecenter((n) => n + 1);
+      setDrafts((items) => items.filter((d) => d.id !== id));
+      setDraftStatus('Ara kayıt geri yüklendi · uçuş duraklatıldı');
+      setNotice(
+        'Konum, ayarlar ve görev ilerlemesi korundu. Hazır olduğunda Göreve devam et.',
+      );
+    } catch {
+      setNotice('Ara kayıt açılamadı; mevcut uçuş değiştirilmedi.');
+    } finally {
+      restoring.current = false;
+      setRecovering(false);
+    }
+  };
+  const discardDraft = async (id: string) => {
+    try {
+      await retireDraft(id, 'discarded');
+      setDrafts((items) => items.filter((d) => d.id !== id));
+    } catch {
+      setNotice('Ara kayıt kaldırılamadı.');
+    }
   };
   const showLesson = (id: string) => {
     setLesson(id);
@@ -551,13 +873,23 @@ export default function NavigationTrainer() {
               {pane === 'flight'
                 ? mission
                   ? mission.title
-                  : 'Serbest uçuş'
+                  : preparing
+                    ? preview.title
+                    : 'Serbest uçuş'
                 : panes.find((p) => p.id === pane)?.label}
             </h1>
           </div>
           <span className="flight-state">
             <i className={flight.running ? 'live-dot' : 'paused-dot'} />
-            {flight.running ? 'Uçuşta' : 'Duraklatıldı'}
+            {mission
+              ? flight.running
+                ? 'Görev sürüyor'
+                : flight.metrics.elapsed > 0
+                  ? 'Görev duraklatıldı'
+                  : 'Görev hazır'
+              : preparing
+                ? 'Görev hazırlığı'
+                : 'Serbest uçuş'}
           </span>
           {mission && (
             <span className="mode-chip">
@@ -568,7 +900,7 @@ export default function NavigationTrainer() {
             <span>
               {mission
                 ? `Görev ${mission.level.slice(0, 2)}`
-                : 'İstanbul eğitim sahası'}
+                : 'Serbest uçuşta kayıt / değerlendirme yapılmaz'}
             </span>
             <span
               className="selected-settings"
@@ -599,20 +931,28 @@ export default function NavigationTrainer() {
           <Button
             className="flight-toggle"
             variant={flight.running ? 'secondary' : 'default'}
-            onClick={() => {
-              if (pane !== 'flight') setMobileView('cockpit');
-              go('flight');
-              change({ running: !state.current.running });
-              setNotice('');
-            }}
+            disabled={recovering || finalizing || ownershipLost}
+            onClick={toggleFlight}
           >
             {flight.running ? <Pause /> : <Play />}
-            {flight.running ? 'Duraklat' : 'Uçuşu başlat'}
+            {flight.running
+              ? 'Duraklat'
+              : mission
+                ? flight.metrics.elapsed > 0
+                  ? 'Göreve devam et'
+                  : 'Görevi başlat'
+                : preparing
+                  ? 'Görevi hazırla'
+                  : 'Serbest uçuşu başlat'}
           </Button>
           {mission ? (
-            <Button variant="outline" onClick={() => finish(state.current)}>
+            <Button
+              disabled={ownershipLost || finalizing}
+              variant="outline"
+              onClick={() => finish(state.current)}
+            >
               <Flag />
-              Uçuşu bitir
+              Bitir ve değerlendir
             </Button>
           ) : (
             <Button
@@ -666,6 +1006,65 @@ export default function NavigationTrainer() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
+      )}
+      {!mission && !finalizing && recoverableDrafts.length > 0 && (
+        <section className="recovery-panel" aria-label="Yarım kalan uçuşlar">
+          <b>Yarım kalan uçuşların var</b>
+          <p>
+            Ara kayıt aynı tarayıcıdadır; ani kapanışta son birkaç saniye eksik
+            olabilir. Geri yüklenen uçuş duraklatılır. Başka sekmede açık olan
+            aynı uçuş devralınır.
+          </p>
+          {recoverableDrafts.map((d) => (
+            <div className="recovery-row" key={d.id}>
+              <span>
+                {MISSIONS.find((m) => m.id === d.flight.missionId)?.title} ·{' '}
+                <Time seconds={d.flight.metrics.elapsed} /> ·{' '}
+                {new Date(d.savedAt).toLocaleString('tr-TR')}
+              </span>
+              <Button
+                disabled={recovering || flight.running}
+                onClick={() => void recoverDraft(d.id)}
+              >
+                Duraklatılmış geri yükle
+              </Button>
+              <Button
+                variant="ghost"
+                disabled={recovering || flight.running}
+                onClick={() => void discardDraft(d.id)}
+              >
+                Ara kaydı kaldır
+              </Button>
+            </div>
+          ))}
+        </section>
+      )}
+      {pane === 'flight' && mission && (
+        <section
+          className="mission-progress-strip"
+          aria-label="Görev ilerlemesi"
+        >
+          <div>
+            <b>{flight.exam ? 'Sınav uçuşu' : explanation?.title}</b>
+            <p>
+              {flight.exam
+                ? 'Geri bildirim uçuşun sonunda açılacak. Görev koşulları sağlandığında otomatik sonlanır.'
+                : explanation?.detail}
+            </p>
+          </div>
+          {!flight.exam && (
+            <div>
+              <strong>
+                {flight.metrics.stable.toFixed(1)} / {mission.duration} sn
+              </strong>
+              <small>Kesintisiz uygun takip · koşullar birlikte aranır</small>
+            </div>
+          )}
+          <small className="draft-status">
+            {draftStatus || 'Görev kaydı hazır'} · Yenilemeden önce ara kayıt
+            durumunu kontrol et.
+          </small>
+        </section>
       )}
       <main
         id="workspace"
@@ -733,14 +1132,13 @@ export default function NavigationTrainer() {
               <div className="mission-list">
                 {MISSIONS.map((m) => (
                   <button
-                    disabled={!!mission}
+                    disabled={recovering || finalizing || missionLocked}
                     key={m.id}
                     className={`mission-link ${brief.id === m.id ? 'active' : ''}`}
                     onClick={() => {
+                      loadMission(m.id);
                       briefingRequested.current = true;
-                      setSelected(m.id);
                       setMobileView('mission');
-                      go('flight');
                     }}
                   >
                     <span className="mission-index">
@@ -763,7 +1161,7 @@ export default function NavigationTrainer() {
               </div>
               <Button
                 variant="outline"
-                disabled={!!mission}
+                disabled={recovering || finalizing || missionLocked}
                 onClick={resetFree}
               >
                 <Compass />
@@ -951,12 +1349,32 @@ export default function NavigationTrainer() {
                     </small>
                   </div>
                 </div>
+                <div className="brief-actions">
+                  <label htmlFor="prepared-exam-toggle">
+                    <Switch
+                      id="prepared-exam-toggle"
+                      checked={mission ? flight.exam : exam}
+                      disabled={missionLocked}
+                      onCheckedChange={(value) => {
+                        setExam(value);
+                        if (mission && !missionLocked) change({ exam: value });
+                      }}
+                    />
+                    Sınav modu <small>Uçuş başladıktan sonra değişmez</small>
+                  </label>
+                </div>
+                <p className="muted">
+                  Koşullar kesintisiz sağlandığında görev kendiliğinden biter;
+                  Bitir ve değerlendir düğmesi erken sonlandırmak içindir.
+                </p>
                 {mission && sample ? (
                   <div className="live-evaluation">
                     <div className="section-heading">
                       <b>
                         {flight.exam
-                          ? 'Sınav sürüyor'
+                          ? flight.running
+                            ? 'Sınav sürüyor'
+                            : 'Sınav duraklatıldı'
                           : sample.good
                             ? 'Hedef toleransındasın'
                             : !sample.setup
@@ -1020,17 +1438,12 @@ export default function NavigationTrainer() {
                   </div>
                 ) : (
                   <div className="brief-actions">
-                    <label htmlFor="exam-toggle">
-                      <Switch
-                        id="exam-toggle"
-                        checked={exam}
-                        onCheckedChange={setExam}
-                      />
-                      Sınav modu <small>Harita ve anlık ipucu kapalı</small>
-                    </label>
-                    <Button onClick={() => loadMission()}>
+                    <Button
+                      disabled={recovering || finalizing}
+                      onClick={() => loadMission()}
+                    >
                       <Play />
-                      Görevi yükle
+                      Görevi hazırla
                     </Button>
                   </div>
                 )}
@@ -1328,7 +1741,7 @@ export default function NavigationTrainer() {
         </aside>
       </main>
       <footer className="app-footer">
-        <span>RADIO LAB · Açıklamalı uçuş tekrarı / 12</span>
+        <span>RADIO LAB · Görev kaydı ve kurtarma / 13</span>
         <span>Model: 120 KTAS · 4.200 ft sabit · 6°E senaryo varyasyonu</span>
         <button onClick={() => go('sources')}>
           Kaynaklar ve sınırlamalar <ArrowRight size={14} />

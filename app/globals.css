@@ -2404,3 +2404,64 @@ div:has(> .trainer-choice-menu) {
     height: 310px;
   }
 }
+
+/* The task state remains visible outside the briefing, including narrow screens. */
+.recovery-panel,
+.mission-progress-strip {
+  margin: 14px 24px 0 116px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+  font-size: 14px;
+  min-width: 0;
+}
+.recovery-panel p,
+.mission-progress-strip p {
+  margin: 6px 0;
+  line-height: 1.5;
+}
+.recovery-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 12px;
+}
+.recovery-row > span {
+  flex: 1 1 280px;
+}
+.mission-progress-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 24px;
+}
+.mission-progress-strip strong {
+  display: block;
+  font-size: 22px;
+  white-space: nowrap;
+}
+.mission-progress-strip small {
+  display: block;
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+.draft-status {
+  grid-column: 1 / -1;
+}
+@media (max-width: 900px) {
+  .recovery-panel,
+  .mission-progress-strip {
+    margin: 12px 12px 0;
+    padding: 14px;
+  }
+}
+@media (max-width: 600px) {
+  .mission-progress-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .recovery-row > button {
+    flex: 1 1 140px;
+    min-height: 44px;
+  }
+}

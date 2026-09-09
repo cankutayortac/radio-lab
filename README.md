@@ -15,12 +15,22 @@ VOR, NDB ve DME çalışmaları için Türkçe, tarayıcı tabanlı yatay seyrü
 
 ## Yeni uçuş masası
 
-1. **Görevler** sekmesinden bir brifing seçin; ders ve görev numaraları birbirinden ayrıdır.
-2. Görevi yükleyin. Standby frekanslarını girip ↔ ile aktif yapın; CDI kaynağını ve CRS değerini ayarlayın.
-3. Uçuşu başlatın. HDG uçağın başını kumanda eder; CRS yalnızca seçili yolu değiştirir.
-4. Uçuşu bitirerek değerlendirmeyi açın. Derslerden ilgili görev brifingine geçebilirsiniz; devam eden bir uçuş bu geçişte sıfırlanmaz.
+1. **Görevler** sekmesinden bir görev kartı seçin; görev duraklatılmış olarak hazırlanır. Ders ve görev numaraları birbirinden ayrıdır.
+2. Standby frekanslarını girip ↔ ile aktif yapın; CDI kaynağını ve CRS değerini ayarlayın.
+3. **Görevi başlat** ile uçun. HDG uçağın başını kumanda eder; CRS yalnızca seçili yolu değiştirir.
+4. Koşullar sağlanınca görev kendiliğinden biter ve değerlendirme açılır. Erken bitirmek için **Bitir ve değerlendir** kullanın. Derslerden brifinge geçmek devam eden uçuşu sıfırlamaz.
 
 Bilgi testi yanıtları ders/kokpit sekmelerine gidip dönünce korunur; yeni test başlatmak veya sayfayı yenilemek mevcut test oturumunu sıfırlar. Tamamlanmış sonuçlar tarayıcı kaydında tutulur. Ekran boyutu değişirken sürükleme iptal edilir; seçili course ve heading kendiliğinden eşlenmez.
+
+## Görev başlatma ve yarım kalan uçuşlar
+
+Görev kartını seçmek görevi duraklatılmış olarak hazırlar. Frekansları, CDI kaynağını ve CRS değerini ayarlayın; **Görevi başlat** ile uçun. Serbest uçuş ayrı etiketlenir ve görev sonucu oluşturmaz. Görev koşulları sağlanınca uçuş kendiliğinden biter ve değerlendirme açılır; **Bitir ve değerlendir** erken bitirmek içindir.
+
+Rehberli uçuşta ilerleme şeridi eksik ayarı veya tamamlanmayı bekleyen koşulu gösterir. İstenen kararlı süre, toplam uçuş süresi değil kesintisiz tolerans içi süredir; tolerans dışına çıkınca yeniden başlar. DME arc ve istasyon geçişi ayrıca kendi ilerleme/aşama koşullarını ister. Sınav sırasında bu ipuçları gösterilmez.
+
+Başlamış görevler yaklaşık iki saniyede bir aynı tarayıcıda ara kaydedilir. Sayfa yenilendiğinde veya tarayıcı yeniden açıldığında kurtarma kartından **Duraklatılmış geri yükle** seçilebilir. Uçuş konumu, frekanslar, her iki CRS, HDG, sınav seçimi, değerlendirme ilerlemesi ve tekrar geçmişi korunur; uçuş güvenle duraklatılmış ve 1× hızda açılır. Son birkaç saniyenin kaydı kapanışta garanti edilmez. Hiç başlamamış hazırlıklar veya güncellemeden önce kaydedilmemiş uçuşlar geri getirilemez.
+
+Ara kayıt diğer sekmede devralınırsa eski sekme duraklar; aynı uçuş iki kez sonuçlandırılmaz. Tamamlanmış ya da kaldırılmış ara kayıt geç gelen bir yazmayla yeniden görünmez. Depolama kullanılamadığında uyarı gösterilir; sekmeyi kapatmadan uçuşu bitirin. Farklı tarayıcılar, cihazlar ve iki farklı site adresi arasında kayıt eşitlemesi yoktur.
 
 ## Yerelde çalıştırma
 
